@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  run-tests:
 
     runs-on: ubuntu-latest
 
@@ -39,15 +39,15 @@ jobs:
 
         # Iterate over each test file
         for file in $test_files; do
-            # Invoke coverage run -m pytest -q path/to/testfile
-            python -m coverage run --append -m pytest -q $file
+          # Invoke coverage run -m pytest -q path/to/testfile
+          python -m coverage run --append -m pytest -q $file
 
-            # Check if coverage data was created
-            if [ -f .coverage ]; then
-                echo "Coverage data created for $file"
-            else
-                echo "No coverage data created for $file"
-            fi
+          # Check if coverage data was created
+          if [ -f .coverage ]; then
+              echo "Coverage data created for $file"
+          else
+              echo "No coverage data created for $file"
+          fi
 
           # Generate coverage report
           echo "Generating coverage report for $file"
