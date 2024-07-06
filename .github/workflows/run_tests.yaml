@@ -1,0 +1,68 @@
+name: Run Pytests
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        while read requirement; do
+          echo "Installing $requirement"
+          if ! pip show $requirement > /dev/null; then
+            pip install --no-cache-dir $requirement
+          fi
+        done < requirements.txt
+
+    - name: Run tests
+      run: |
+        # Find all test files
+        test_files=$(find tests/ -name 'test_*.py')
+        echo "Test files: $test_files"
+
+        # Remove any existing coverage data
+        coverage erase
+
+        # Iterate over each test file
+        for file in $test_files; do
+            # Invoke coverage run -m pytest -q path/to/testfile
+            python -m coverage run --append -m pytest -q $file
+
+            # Check if coverage data was created
+            if [ -f .coverage ]; then
+                echo "Coverage data created for $file"
+            else
+                echo "No coverage data created for $file"
+            fi
+
+          # Generate coverage report
+          echo "Generating coverage report for $file"
+          file_tested=${file#*test_}
+          coverage report --show-missing --include="/src/${file_tested}" --omit="/tests/*" --fail-under=80
+
+        done
+
+        
+    #     # Generate coverage report
+    #     coverage xml
+    #     coverage html
+
+    # - name: Upload coverage report
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: coverage-report
+    #     path: coverage.xml
