@@ -165,3 +165,6 @@ keys/
 
 tf/.terraform*
 tf/terraform*
+
+lambda
+lambda/*
