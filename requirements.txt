@@ -1,5 +1,0 @@
-pytest
-coverage
-awscli
-boto3
-requests
