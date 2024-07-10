@@ -61,6 +61,10 @@ def extract_and_download_photos(hotel, api_key, bucket_name, region):
 def extract_hotel_data(hotel, API_KEY, NUM_REVIEWS, bucket_name, region):
     details = get_hotel_details(hotel['place_id'], API_KEY)
     photos_info = extract_and_download_photos(details, API_KEY, bucket_name, region)
+    
+    # Sort reviews by date and select the latest 100 reviews
+    sorted_reviews = sorted(details.get('reviews', []), key=lambda x: x.get('time', 0), reverse=True)[:NUM_REVIEWS]
+
     return {
         "hotel_name": details.get('name', ''),
         "location": details.get('vicinity', ''),
@@ -78,7 +82,7 @@ def extract_hotel_data(hotel, API_KEY, NUM_REVIEWS, bucket_name, region):
                 "rating": review.get('rating', 0),
                 "date": review.get('relative_time_description', ''),
                 "review": review.get('text', '')
-            } for review in details.get('reviews', [])[:NUM_REVIEWS]
+            } for review in sorted_reviews
         ],
         "source": f"https://maps.googleapis.com/maps/api/place/details/json?place_id={hotel['place_id']}&key={API_KEY}"
     }
@@ -115,8 +119,8 @@ def get_raw_data(event):
 # Main function to trigger the lambda_handler
 def main():
     REGIONS = ['Andorra la Vella', 'Escaldes-Engordany', 'Encamp', 'Canillo', 'La Massana', 'Ordino', 'Sant Julià de Lòria']
-    NUM_HOTELS = 1
-    NUM_REVIEWS = 1
+    NUM_HOTELS = 50
+    NUM_REVIEWS = 100  # Update to retrieve the latest 100 reviews
 
     for region in REGIONS:
         event = {
