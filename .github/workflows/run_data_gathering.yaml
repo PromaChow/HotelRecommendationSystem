@@ -1,32 +1,30 @@
-name: Trigger Lambda Function for Andorran Regions
+name: Retrieve Hotel Data
 
 on:
   workflow_dispatch:
 
 jobs:
-  invoke_lambda:
+  retrieve:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        region: ['Andorra la Vella', 'Escaldes-Engordany', 'Encamp', 'Canillo', 'La Massana', 'Ordino', 'Sant Julià de Lòria']
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v1
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-west-2
-
-    - name: Invoke Lambda function for ${{ matrix.region }}
+        python-version: '3.8'
+    
+    - name: Install dependencies
       run: |
-        aws lambda invoke \
-          --function-name data_gathering_lambda \
-          --payload '{"region": "${{ matrix.region }}", "num_hotels": 50, "num_reviews": 100}' \
-          response_${{ matrix.region }}.json
-
-    - name: Display Lambda response for ${{ matrix.region }}
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run hotel data retrieval script
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-west-2
       run: |
-        cat response_${{ matrix.region }}.json
+        python src/data_gathering.py
