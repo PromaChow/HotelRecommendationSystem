@@ -1,17 +1,20 @@
 import json
 import boto3
 import requests
+import time
 from datetime import datetime
 from secrets_manager import get_parameter
 from urllib.parse import urlencode
 
 s3 = boto3.client('s3', region_name='us-west-2')
 
-def get_hotels_in_region(region, API_KEY):
+def get_hotels_in_region(region, API_KEY, next_page_token=None):
     url = f'https://maps.googleapis.com/maps/api/place/textsearch/json?query=hotels+in+{region}&key={API_KEY}'
+    if next_page_token:
+        url += f'&pagetoken={next_page_token}'
     response = requests.get(url)
     response.raise_for_status()  # Raise an error for bad status codes
-    return response.json().get('results', [])
+    return response.json()
 
 def get_hotel_details(place_id, API_KEY):
     url = f'https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&key={API_KEY}'
@@ -74,7 +77,7 @@ def extract_hotel_data(hotel, API_KEY, NUM_REVIEWS, bucket_name, region):
         "address": details.get('formatted_address', ''),
         "business_status": hotel.get('business_status', ''),
         "place_id": hotel.get('place_id', ''),
-        "amenities": {amenity: True for amenity in details.get('amenities', [])},
+        "amenities": {},  # You can update this based on available data
         "photos": photos_info,
         "reviews": [
             {
@@ -95,10 +98,18 @@ def get_raw_data(event):
     NUM_REVIEWS = event["num_reviews"]
     region = event['region']
 
-    hotels = get_hotels_in_region(region, GOOGLE_PLACES_API_KEY)
-    
+    all_hotels = []
+    next_page_token = None
+    while len(all_hotels) < NUM_HOTELS:
+        result = get_hotels_in_region(region, GOOGLE_PLACES_API_KEY, next_page_token)
+        all_hotels.extend(result.get('results', []))
+        next_page_token = result.get('next_page_token')
+        if not next_page_token:
+            break
+        time.sleep(2)  # Sleep to comply with API rate limits
+
     hotel_details = []
-    for hotel in hotels[:NUM_HOTELS]:
+    for hotel in all_hotels[:NUM_HOTELS]:
         hotel_data = extract_hotel_data(hotel, GOOGLE_PLACES_API_KEY, NUM_REVIEWS, 'andorra-hotels-data-warehouse', region)
         hotel_details.append(hotel_data)
     
@@ -116,11 +127,11 @@ def get_raw_data(event):
         'body': json.dumps('Data retrieved and stored in S3')
     }
 
-# Main function to trigger the lambda_handler
+# Main function to trigger the get_raw_data function
 def main():
     REGIONS = ['Andorra la Vella', 'Escaldes-Engordany', 'Encamp', 'Canillo', 'La Massana', 'Ordino', 'Sant Julià de Lòria']
     NUM_HOTELS = 50
-    NUM_REVIEWS = 100  # Update to retrieve the latest 100 reviews
+    NUM_REVIEWS = 100
 
     for region in REGIONS:
         event = {
