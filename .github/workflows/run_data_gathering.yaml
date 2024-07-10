@@ -1,4 +1,4 @@
-name: Retrieve Hotel Data
+name: 1. Retrieve Hotel Raw Data
 
 on:
   workflow_dispatch:

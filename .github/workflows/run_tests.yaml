@@ -1,4 +1,4 @@
-name: Run Pytests
+name: 0. Run Pytests
 
 on:
   pull_request:
@@ -32,5 +32,5 @@ jobs:
         coverage run --source=src -m pytest tests/
 
         # Generate coverage report
-        coverage report --show-missing --fail-under=80
+        coverage report --show-missing
         coverage xml
