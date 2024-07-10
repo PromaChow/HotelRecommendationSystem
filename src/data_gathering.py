@@ -114,8 +114,7 @@ def get_raw_data(event):
 
 # Main function to trigger the lambda_handler
 def main():
-    # REGIONS = ['Andorra la Vella', 'Escaldes-Engordany', 'Encamp', 'Canillo', 'La Massana', 'Ordino', 'Sant Julià de Lòria']
-    REGIONS = ['Andorra la Vella']
+    REGIONS = ['Andorra la Vella', 'Escaldes-Engordany', 'Encamp', 'Canillo', 'La Massana', 'Ordino', 'Sant Julià de Lòria']
     NUM_HOTELS = 1
     NUM_REVIEWS = 1
 
