@@ -17,7 +17,13 @@ This project implements a complete CI/CD ML Pipeline that gathers hotel informat
 
 ## Architecture
 
-TODO
+### Flow of the Architecture
+
+![Architectural Flow](img/flow.png)
+
+### First Architectural Diagram
+
+![Architecture](img/architecture.png)
 
 ## Pre-requisites
 
