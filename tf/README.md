@@ -1,10 +1,6 @@
 # Terraform Installation and Functioning
- 
-# Git repository structure
-⁠ /tf &rarr; Infrastructure needed for the project
 
  
-# How to run
 ## Prerequisites
 1.⁠ ⁠Install terraform in your local computer: https://phoenixnap.com/kb/how-to-install-terraform.
 - For MacOS you can use the following commands in homebrew:
@@ -100,19 +96,21 @@ Default output format [None]: json
 
 ## Start
 
-Since the AWS account is emptry we had to first create an S3 bucket with the code in `create_backend_bucket`, and then did the following commands: 
+Since the AWS account is empty at the beggining we had to first create an S3 bucket with the code in `create_backend_bucket`, and then did the following commands: 
 ```bash
 terraform init
 terraform apply -auto-approve
 ``` 
 
+Hence, to make it work, please remove all other files from the Terraform folder apart from the one depicted and then run the commands. 
+
 I also neded to add the S3 bucket and S3 bucket state with the following commands: 
 ```bash
-terraform import aws_iam_user.admin_user normagutiesc@gmail.com
+terraform import aws_iam_user.admin_user example@gmail.com
 terraform import aws_s3_bucket.andorra_hotels_data_warehouse andorra-hotels-data-warehouse
 ```
 
-Once that is done, we can change the type of the actual `create_backend_bucket` and place our infrastructure code. 
+Once that is done, we can change the type of the actual `create_backend_bucket` to txt since we will not be using it anymore and place our infrastructure code. 
 
 ## Terraform Commands
  
@@ -145,3 +143,7 @@ Once that is done, we can change the type of the actual `create_backend_bucket` 
     ⁠ terraform validate ⁠
     ⁠ terraform apply ⁠
 ```
+
+## Build the Infra
+
+Hence, to build the entire infrastructure, you just have to type the Update commands. 
