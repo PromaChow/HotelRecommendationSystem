@@ -9,7 +9,6 @@ This project implements a complete CI/CD ML Pipeline that gathers hotel informat
 ## Table of Contents
 
 - [Architecture](#architecture)
-- [Installation](#installation)
 - [Pre-requisites](#pre-requisites)
 - [Usage](#usage)
 - [License](#license)
@@ -77,11 +76,9 @@ For GitHub Actions:
 
 ### Data Gathering
 
-## Data Gathering
-
 To obtain a dataset containing updated hotels and reviews for the Andorran region, and to ensure it is maintained and updated frequently, the Google Places API was utilized. Once the environment is set up, the only action required to retrieve the raw data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `1. Retrieve Hotel Raw Data` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the raw data will be stored in your `andorra-hotels-data-warehouse` bucket.
 
-### Data Extraction Process
+#### Data Extraction Process
 
 The data extraction process is performed by the GitHub action which follows these steps:
 
