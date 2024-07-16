@@ -97,14 +97,16 @@ Default output format [None]: json
 ## Start
 
 Since the AWS account is empty at the beggining we had to first create an S3 bucket with the code in `create_backend_bucket`, and then did the following commands: 
+
 ```bash
 terraform init
 terraform apply -auto-approve
-``` 
+```
 
 Hence, to make it work, please remove all other files from the Terraform folder apart from the one depicted and then run the commands. 
 
 I also neded to add the S3 bucket and S3 bucket state with the following commands: 
+
 ```bash
 terraform import aws_iam_user.admin_user example@gmail.com
 terraform import aws_s3_bucket.andorra_hotels_data_warehouse andorra-hotels-data-warehouse
