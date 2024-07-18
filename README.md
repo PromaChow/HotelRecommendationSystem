@@ -72,6 +72,16 @@ For GitHub Actions:
 2. Click on Settings > Secrets and Variables > Actions.
 3. Add the following secrets: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 
+### Installations to test locally
+
+Please install Python > 3.8 and all the requirements in the TXT file. Furthermore, you should also have Java installed, for MacOS follow the next commands:
+```bash
+brew install openjdk@11
+export JAVA_HOME=$(/usr/libexec/java_home -v 11)
+export PATH=$JAVA_HOME/bin:$PATH
+source ~/.zshrc
+```
+
 ## Usage
 
 ### Data Gathering
