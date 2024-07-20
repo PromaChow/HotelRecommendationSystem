@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from secrets_manager import get_parameter
 from urllib.parse import urlencode
+from serpapi import GoogleSearch
 
 s3 = boto3.client('s3', region_name='us-west-2')
 
@@ -42,6 +43,43 @@ def get_hotel_details(place_id, API_KEY):
     response = requests.get(url)
     response.raise_for_status()  # Raise an error for bad status codes
     return response.json().get('result', {})
+
+def get_serpapi_reviews(place_id, api_key, num_reviews=100):
+    reviews = []
+    params = {
+        "engine": "google_maps_reviews",
+        "place_id": place_id,
+        "api_key": api_key,
+    }
+
+    while len(reviews) < num_reviews:
+        search = GoogleSearch(params)
+        results = search.get_dict()
+
+        # Check for errors in the response
+        if 'error' in results:
+            print(f"Error fetching reviews: {results['error']}")
+            break
+
+        reviews.extend(results.get('reviews', []))
+
+        # Check if there is a next_page_token for further pagination
+        next_page_token = results.get('serpapi_pagination', {}).get('next_page_token')
+        if not next_page_token:
+            break
+
+        params["next_page_token"] = next_page_token
+        params["num"] = 20
+        time.sleep(2)  # Sleep to respect rate limits
+
+    return [
+        {
+            "user": review.get('user', {}).get('name', ''),
+            "rating": review.get('rating', 0),
+            "date": review.get('date', ''),
+            "review": review.get('snippet', '')
+        } for review in reviews[:num_reviews]
+    ]
 
 def get_photo_url(photo_reference, api_key, max_width=400):
     """
@@ -125,13 +163,14 @@ def extract_and_download_photos(hotel, api_key, bucket_name, region):
                 })
     return photos_info
 
-def extract_hotel_data(hotel, API_KEY, NUM_REVIEWS, bucket_name, region):
+def extract_hotel_data(hotel, API_KEY, SERPAPI_KEY, NUM_REVIEWS, bucket_name, region):
     """
     Extracts detailed hotel data including photos and reviews.
 
     Parameters:
     hotel (dict): Dictionary containing basic hotel data.
     API_KEY (str): API key for authenticating with the Google Places API.
+    SERPAPI_KEY (str): API key for authenticating with SerpAPI.
     NUM_REVIEWS (int): Number of reviews to extract.
     bucket_name (str): Name of the S3 bucket to upload photos to.
     region (str): The region where the hotel is located.
@@ -142,8 +181,8 @@ def extract_hotel_data(hotel, API_KEY, NUM_REVIEWS, bucket_name, region):
     details = get_hotel_details(hotel['place_id'], API_KEY)
     photos_info = extract_and_download_photos(details, API_KEY, bucket_name, region)
     
-    # Sort reviews by date and select the latest reviews
-    sorted_reviews = sorted(details.get('reviews', []), key=lambda x: x.get('time', 0), reverse=True)[:NUM_REVIEWS]
+    # Fetch reviews from SerpAPI
+    serpapi_reviews = get_serpapi_reviews(hotel['place_id'], SERPAPI_KEY, NUM_REVIEWS)
 
     return {
         "hotel_name": details.get('name', ''),
@@ -156,14 +195,7 @@ def extract_hotel_data(hotel, API_KEY, NUM_REVIEWS, bucket_name, region):
         "place_id": hotel.get('place_id', ''),
         "amenities": {},  # You can update this based on available data
         "photos": photos_info,
-        "reviews": [
-            {
-                "user": review.get('author_name', ''),
-                "rating": review.get('rating', 0),
-                "date": review.get('relative_time_description', ''),
-                "review": review.get('text', '')
-            } for review in sorted_reviews
-        ],
+        "reviews": serpapi_reviews,
         "source": f"https://maps.googleapis.com/maps/api/place/details/json?place_id={hotel['place_id']}&key={API_KEY}"
     }
 
@@ -179,6 +211,7 @@ def get_raw_data(event):
     """
     # Retrieve secrets from AWS Systems Manager Parameter Store
     GOOGLE_PLACES_API_KEY = get_parameter('GOOGLE_PLACES_API_KEY')
+    SERPAPI_KEY = get_parameter('SERAPI_API_KEY')
 
     NUM_HOTELS = event['num_hotels']
     NUM_REVIEWS = event["num_reviews"]
@@ -196,7 +229,7 @@ def get_raw_data(event):
 
     hotel_details = []
     for hotel in all_hotels[:NUM_HOTELS]:
-        hotel_data = extract_hotel_data(hotel, GOOGLE_PLACES_API_KEY, NUM_REVIEWS, 'andorra-hotels-data-warehouse', region)
+        hotel_data = extract_hotel_data(hotel, GOOGLE_PLACES_API_KEY, SERPAPI_KEY, NUM_REVIEWS, 'andorra-hotels-data-warehouse', region)
         hotel_details.append(hotel_data)
     
     current_date = datetime.now().strftime('%Y-%m-%d')
@@ -219,6 +252,7 @@ def main():
     Main function to initiate the hotel data retrieval process for multiple regions.
     """
     REGIONS = ['Andorra la Vella', 'Escaldes-Engordany', 'Encamp', 'Canillo', 'La Massana', 'Ordino', 'Sant Julià de Lòria']
+    # REGIONS = ['Andorra la Vella']
     NUM_HOTELS = 50
     NUM_REVIEWS = 100
 

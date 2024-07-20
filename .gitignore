@@ -166,5 +166,7 @@ keys/
 tf/.terraform*
 tf/terraform*
 
-lambda
-lambda/*
+output/
+input/
+
+.DS_Store

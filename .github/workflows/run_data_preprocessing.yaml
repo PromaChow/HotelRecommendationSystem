@@ -1,4 +1,4 @@
-name: 2. Trigger AWS Glue Job
+name: 2. Trigger Data Preprocessing
 
 on:
     workflow_dispatch:

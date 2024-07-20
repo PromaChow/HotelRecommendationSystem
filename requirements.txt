@@ -1,4 +1,5 @@
 pytest
+pyspark
 coverage
 awscli
 boto3
