@@ -4,3 +4,4 @@ coverage
 awscli
 boto3
 requests
+google-search-results
