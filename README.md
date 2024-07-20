@@ -47,6 +47,19 @@ To set up a Google Cloud account, follow these steps:
 4. Enable the Places API: Navigate to the API Library and enable the "Places API" for your project.
 5. Get your API key: Go to the Credentials page and create an API key. This key will be used to authenticate your requests to the Google Places API.
 
+
+### SerpAPI account Setup
+
+The last part consists of setting up SerAPI to be able to retreive 100 reviews for each hotel. 
+
+1. Go to the [SerpAPI website](https://serpapi.com/).
+2. Sign Up for an Account.
+3. Log In to Your Account.
+4. Access the API Key:
+   - Once logged in, navigate to the "Dashboard".
+   - In the dashboard, you will find your API key under the "API Key" section.
+6. Save Your API Key: Copy the API key and keep it secure. You will use this key to authenticate your API requests.
+
 ### Set Up Secrets
 
 The final configuration step involves setting up AWS and GitHub secrets to enable GitHub Actions. While the API secrets can be tested locally, they must be stored securely for CI/CD pipeline execution. 
@@ -60,7 +73,8 @@ To use AWS Systems Manager Parameter Store:
     {
         "ADMIN_ACCESS_KEY_ID": "aws_access_key_id",
         "ADMIN_SECRET_ACCESS_KEY": "aws_secret_access_key",
-        "GOOGLE_PLACES_API_KEY": "google_places_api_key"
+        "GOOGLE_PLACES_API_KEY": "google_places_api_key",
+        "SERAPI_API_KEY": "serapi_api_key"
     }
     ```
     - Select "Standard" tier and "Secure String".

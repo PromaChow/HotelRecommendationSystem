@@ -55,6 +55,53 @@ $ \$0.0805 \text{ (Storage)} + \$0.315 \text{ (Data Transfer)} + \$0.01925 \text
 This setup leverages Google Places API for data retrieval and AWS S3 for storage, providing a scalable and cost-effective solution.
 
 
+# SerAPI additional reviews Costs
+To determine how many requests you would need to extract 100 reviews for each of 350 hotels using SerpAPI, we need to understand how SerpAPI handles pagination and the number of reviews returned per request.
+
+Based on SerpAPI's documentation, let's assume that each request can return a certain number of reviews (typically 10 reviews per request). Here's a step-by-step calculation:
+
+1. **Number of Reviews per Request**: If each SerpAPI request returns 20 reviews, then to get 100 reviews for a single hotel, you need:
+$
+   \text{Requests per hotel} = \frac{100 \text{ reviews}}{20 \text{ reviews per request}} = 5 \text{ requests per hotel}
+$
+
+2. **Total Number of Hotels**: You have 350 hotels.
+
+3. **Total Number of Requests**: Multiply the number of requests per hotel by the total number of hotels:
+$
+   \text{Total requests} = 5 \text{ requests per hotel} \times 350 \text{ hotels} = 1750 \text{ requests}
+$
+
+So, you would need a total of **3500 requests** to extract 100 reviews for each of 350 hotels.
+
+## Pricing Information
+
+As of the latest information available, here is an overview of SerpAPI's pricing plans:
+
+1. **Free Plan:**
+   - **Requests per Month:** 100
+   - **Cost:** $0
+
+2. **Hobby Plan:**
+   - **Requests per Month:** 5,000
+   - **Cost:** $75/month
+
+3. **Basic Plan:**
+   - **Requests per Month:** 20,000
+   - **Cost:** $150/month
+
+4. **Business Plan:**
+   - **Requests per Month:** 50,000
+   - **Cost:** $275/month
+
+## Summary
+
+1. **API Rate Limits**: Make sure to check SerpAPI’s rate limits and ensure your plan can handle 3500 requests within your desired timeframe.
+2. **Cost**: Based on the pricing plans mentioned earlier, ensure you choose a plan that can accommodate 3500 requests. 
+
+For the most up-to-date pricing and detailed feature comparison, visit the [SerpAPI pricing page](https://serpapi.com/pricing)
+
+
 ## Data Preprocessing Cost Estimation
 
 To estimate the cost of preprocessing your data with AWS Glue, we need to consider the number of Data Processing Units (DPUs) required and the duration of the preprocessing job.
