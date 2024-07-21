@@ -136,8 +136,8 @@ def main():
     spark = initialize_spark()
 
     s3_bucket = 'andorra-hotels-data-warehouse'
-    input_prefix = 'raw_data/text/dummy/'
-    output_prefix = 'l1_data/text/dummy/'
+    input_prefix = 'raw_data/text/'
+    output_prefix = 'l1_data/text/'
     current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     schema = get_schema()
