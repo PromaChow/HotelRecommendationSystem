@@ -6,3 +6,4 @@ boto3
 requests
 google-search-results
 langdetect
+googletrans==4.0.0-rc1

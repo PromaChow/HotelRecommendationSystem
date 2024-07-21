@@ -252,7 +252,6 @@ def main():
     Main function to initiate the hotel data retrieval process for multiple regions.
     """
     REGIONS = ['Andorra la Vella', 'Escaldes-Engordany', 'Encamp', 'Canillo', 'La Massana', 'Ordino', 'Sant Julià de Lòria']
-    # REGIONS = ['Andorra la Vella']
     NUM_HOTELS = 50
     NUM_REVIEWS = 100
 

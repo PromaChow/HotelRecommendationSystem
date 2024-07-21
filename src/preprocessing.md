@@ -105,3 +105,48 @@ To test the AWS Glue job from the AWS Console, follow these steps:
 5. **Verify Output**:
    - After the job completes successfully, verify that the transformed data is written to the specified S3 path (`s3://andorra-hotels-data-warehouse/l2_data/`).
    - Check for the presence of the output files to ensure the job ran correctly.
+
+
+
+### Justification for Using GitHub Actions Over AWS Glue
+
+**Flexibility and Portability**:
+- **Code Transportability**: Using GitHub Actions ensures your code remains portable and can be easily executed in different environments without being tightly coupled to AWS Glue.
+- **Ease of Use**: GitHub Actions provides a straightforward way to automate workflows without the need for additional AWS-specific setup and configuration.
+
+**Cost Management**:
+- **Cost Efficiency**: For small to medium-sized data processing tasks, running jobs using GitHub Actions can be more cost-effective than AWS Glue, especially if you already have GitHub Actions included in your repository’s plan.
+- **No Cold Start Delay**: GitHub Actions typically have a shorter startup time compared to AWS Glue, which can experience cold start delays.
+
+**Integration with CI/CD**:
+- **Seamless Integration**: GitHub Actions integrates natively with your GitHub repository, allowing you to automate data processing tasks as part of your CI/CD pipeline.
+- **Unified Platform**: Managing your codebase, issues, CI/CD, and data processing within GitHub simplifies the development workflow and reduces context switching.
+
+**Resource Constraints**:
+- **Custom Resources**: While AWS Glue is powerful, it might be overkill for tasks that can be efficiently handled by GitHub Actions with specific resource configurations.
+- **Simplified Dependency Management**: Managing Python dependencies in GitHub Actions is straightforward and does not require the additional steps needed to package and upload dependencies for AWS Glue.
+
+### Maximum Execution Time for GitHub Actions
+
+The maximum execution time for a GitHub Action is **6 hours** per job. This should be sufficient for most data preprocessing tasks. If your job exceeds this limit, you might need to optimize the code or split the task into smaller, more manageable parts.
+
+### Summary
+
+Using GitHub Actions for your data preprocessing provides a flexible, cost-effective, and integrated solution, especially beneficial for maintaining code portability and simplifying the development workflow. By leveraging GitHub Actions, you can seamlessly integrate data processing within your CI/CD pipeline, ensuring consistency and ease of use.
+
+Feel free to adjust the workflow file as needed and ensure your AWS credentials are stored securely in your repository’s secrets (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`).
+
+
+## NEXT STEPS:
+##      TAKE OUT SPECIAL CHARACTERS --> DONE
+##      CONVERT TEXT INTO LOWERCASE --> DONE
+##      REMOVE STOPWORDS AND PUNCTUATION --> DONE
+##      ADD LABEL --> LATER
+##      READ ALL FILES FROM FOLDER AND COMBINE THEM INTO A SINGLE CSV --> DONE
+##      READ FILES FROM S3
+##      CONVERT TO GLUE CODE --> NOT NEEDED
+##      TRANSLATE REVIEWS TO ENGLISH --> DONE
+
+### EXTRA (FOR LATER)
+##      TOKENIZATION
+##      STEMMING/LEMMATIZATION
