@@ -1,20 +1,35 @@
-name: 2. Trigger Data Preprocessing
+name: 2. Data Preprocessing
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
-  trigger-glue-job:
+  preprocess:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Trigger Data Preprocessing AWS Glue Job
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: "us-west-2" 
-      run: |
-        aws glue start-job-run --job-name hotel_data_preprocessing_job
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download Hadoop AWS Jars
+        run: |
+          mkdir -p jars
+          curl -L -o jars/hadoop-aws-3.3.1.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.1/hadoop-aws-3.3.1.jar
+          curl -L -o jars/aws-java-sdk-bundle-1.11.901.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.901/aws-java-sdk-bundle-1.11.901.jar
+          
+      - name: Run data preprocessing
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          spark-submit --jars jars/hadoop-aws-3.3.1.jar,jars/aws-java-sdk-bundle-1.11.901.jar src/data_preprocessing.py
