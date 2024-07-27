@@ -8,3 +8,11 @@ google-search-results
 langdetect
 googletrans==4.0.0-rc1
 pandas
+matplotlib
+wordcloud
+textblob
+io
+jupyter
+nbconvert
+plotly
+colorlover
