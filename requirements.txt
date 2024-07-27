@@ -16,3 +16,4 @@ nbconvert
 plotly
 colorlover
 voila
+kaleido

@@ -21,24 +21,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # - name: Convert Notebook to HTML
-    #   run: jupyter nbconvert --to html src/data_visualization.ipynb
-
-    # - name: Upload Report to S3
-    #   env:
-    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #   run: |
-    #     aws s3 cp data_visualization.html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization.html
-
-    - name: Run data visualization report
+    - name: Execute Jupyter Notebook
       run: |
-        # jupyter nbconvert --to html --no-input src/data_visualization.ipynb
-        voila --no-browser --port=8866 --strip_sources=True src/data_visualization.ipynb --template=lab
+        jupyter nbconvert --to notebook --execute your_notebook.ipynb --output executed_notebook.ipynb
+        jupyter nbconvert --to html executed_notebook.ipynb --output data_visualization_l1_$(date +'%Y-%m-%d').html
 
+    - name: Upload to S3
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        pip install awscli
+        aws s3 cp data_visualization_l1_$(date +'%Y-%m-%d').html s3://andorra-hotels-data-warehouse/l1_data/reports/
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GH_TOKEN }}
-        publish_branch: gh-pages
-        publish_dir: ./ 
+        publish_dir: ./
