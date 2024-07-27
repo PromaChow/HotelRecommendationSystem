@@ -22,7 +22,9 @@ jobs:
         pip install -r requirements.txt
     
     - name: Create necessary directories
-      run: mkdir -p plots
+      run: |
+        mkdir -p plots
+        mkdir -p reports
 
     - name: Execute Jupyter Notebook
       env:
@@ -33,7 +35,7 @@ jobs:
     
     - name: Get HTML report
       run: |
-        jupyter nbconvert --to html src/data_visualization.ipynb --output data_visualization_l1_$(date +'%Y-%m-%d').html
+        jupyter nbconvert --to html src/data_visualization.ipynb --output reports/data_visualization_l1_$(date +'%Y-%m-%d').html
 
     - name: Upload to S3
       env:
@@ -41,7 +43,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         pip install awscli
-        aws s3 cp data_visualization_l1_$(date +'%Y-%m-%d').html s3://andorra-hotels-data-warehouse/l1_data/reports/
+        aws s3 cp reports/data_visualization_l1_$(date +'%Y-%m-%d').html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_l1_$(date +'%Y-%m-%d').html
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
