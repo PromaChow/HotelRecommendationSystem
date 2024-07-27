@@ -16,3 +16,4 @@ jupyter
 nbconvert
 plotly
 colorlover
+voila
