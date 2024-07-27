@@ -552,3 +552,14 @@ By following this approach, you can create professional, interactive visualizati
 
 
 ## I had to enable GH token for this
+
+Enable GitHub Pages:
+
+	1.	Go to Repository Settings:
+	•	Navigate to the settings of your GitHub repository.
+	2.	Scroll to the GitHub Pages Section:
+	•	In the repository settings, scroll down to the “GitHub Pages” section.
+	3.	Select Branch:
+	•	In the “Source” dropdown, select the gh-pages branch.
+	4.	Save:
+	•	Click “Save” to enable GitHub Pages for your repository.
