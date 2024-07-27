@@ -23,7 +23,7 @@ jobs:
 
     - name: Execute Jupyter Notebook
       run: |
-        jupyter nbconvert --to notebook --execute your_notebook.ipynb --output executed_notebook.ipynb
+        jupyter nbconvert --to notebook --execute src/data_visualization.ipynb --output executed_notebook.ipynb
         jupyter nbconvert --to html executed_notebook.ipynb --output data_visualization_l1_$(date +'%Y-%m-%d').html
 
     - name: Upload to S3
