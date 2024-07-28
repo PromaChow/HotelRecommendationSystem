@@ -43,7 +43,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         aws s3 cp reports/data_visualization_l1_$(date +'%Y-%m-%d').html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_l1_$(date +'%Y-%m-%d').html
-        
+
     - name: Checkout gh-pages branch
       uses: actions/checkout@v2
       with:
@@ -58,6 +58,8 @@ jobs:
         git add index.html
         git commit -m "Update index.html with latest report link"
         git push origin gh-pages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
