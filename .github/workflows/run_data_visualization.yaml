@@ -51,7 +51,7 @@ jobs:
 
     - name: Copy HTML report to gh-pages
       run: |
-        cp -r reports/data_visualization_l1.html ./reports/
+        cp -r ../reports/data_visualization_l1.html ./reports/
         git config --global user.email "normaescg@gmail.com"
         git config --global user.name "Norma-99"
         git add reports/data_visualization_l1.html
