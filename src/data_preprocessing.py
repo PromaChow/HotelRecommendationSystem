@@ -71,7 +71,7 @@ def detect_language(text):
 
 detect_language_udf = udf(detect_language, StringType())
 
-def process_reviews(df, schema):
+def process_reviews(df, schema, region = "unknown"):
     exploded_df = df.select(
         col("hotel_name"),
         col("rating"),
