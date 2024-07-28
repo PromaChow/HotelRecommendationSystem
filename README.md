@@ -232,14 +232,14 @@ To preprocess your hotel data for an NLP network, we need to extract and structu
 
 1. **Load Data**:
 
-For the data treatment we used mainly PySpark. To load the data we followed the next steps:
+    For the data treatment we used mainly PySpark. To load the data we followed the next steps:
     - Initialize PySpark.
     - Get the dataset schema.
     - Use `boto3` to load the data from the S3 bucket.
     - Load the JSON file into a data structure that allows for easy manipulation.
 
 2. **Feature Extraction**:
-For our first data exploration and treatment, we decided to gather the following information: 
+    For our first data exploration and treatment, we decided to gather the following information: 
     - **Hotel General Information**:
         - `hotel_name`: original from Raw Data
         - `region`: Retrieved the region name from the JSON name
@@ -257,7 +257,7 @@ For our first data exploration and treatment, we decided to gather the following
         - `review language`: Detected the review language by using the `langdetect` library
     
 3. **Text Preprocessing for NLP**:
-Furthermore, to the review texts we decided to add additional transformations so the text is readable by the user: 
+    Furthermore, to the review texts we decided to add additional transformations so the text is readable by the user: 
    - **Lowercasing**: Convert all text to lowercase to maintain uniformity.
    - **Removing Punctuation**: Strip out punctuation marks.
    - **Removing `\r` and `\n` characters**: Removed enters or tabulations from the reviews.
@@ -265,8 +265,7 @@ Furthermore, to the review texts we decided to add additional transformations so
    - **Translated Reviews**: If needed the reviews were translated to English. 
 
 4. **Store the Preprocessed Data in the S3 bucket**
-After execution, the following structure will be present in your S3 bucket: 
-
+    After execution, the following structure will be present in your S3 bucket: 
     ```
     - andorra-hotels-data-warehouse/
         - l1_data/
@@ -274,7 +273,7 @@ After execution, the following structure will be present in your S3 bucket:
                 - l1_data_<Date> CSV
     ```
 
-This structure contains all corresponding data after the first preprocessing phase. The overall process retrieves useful information from our Raw Data dataset and stores the result in an S3 bucket.
+    This structure contains all corresponding data after the first preprocessing phase. The overall process retrieves useful information from our Raw Data dataset and stores the result in an S3 bucket.
 
 #### Data Preprocessing from L1 data to L2 data
 TODO
