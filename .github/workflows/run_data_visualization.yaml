@@ -49,15 +49,14 @@ jobs:
       with:
         ref: gh-pages
 
-    - name: Update index.html
+    - name: Copy HTML report to gh-pages
       run: |
         date=$(date +'%Y-%m-%d')
-        sed -i "s/<date>/${date}/g" index.html
+        cp reports/data_visualization_l1_${date}.html data_visualization_l1_${date}.html
         git config --global user.email "normaescg@gmail.com"
         git config --global user.name "Norma-99"
-        git add index.html
-        git commit -m "Update index.html with latest report link"
-        git remote set-url origin https://Norma-99:${{ secrets.GH_TOKEN }}@github.com/Norma-99/HotelRecommendationSystem.git
+        git add data_visualization_l1_${date}.html
+        git commit -m "Add new data visualization report for ${date}"
         git push origin gh-pages
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -66,5 +65,5 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GH_TOKEN }}
-        publish_dir: ./reports/
+        publish_dir: ./
         publish_branch: gh-pages
