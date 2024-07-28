@@ -11,9 +11,8 @@ pandas
 matplotlib
 wordcloud
 textblob
-io
 jupyter
 nbconvert
 plotly
 colorlover
-voila
+kaleido
