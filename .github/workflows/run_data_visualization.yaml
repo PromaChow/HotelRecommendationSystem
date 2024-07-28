@@ -44,6 +44,15 @@ jobs:
       run: |
         aws s3 cp reports/data_visualization_l1.html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_l1_$(date +'%Y-%m-%d').html
 
+    - name: Commit report to temporary directory
+      run: |
+        git config --global user.email "normaescg@gmail.com"
+        git config --global user.name "Norma-99"
+        mkdir -p tmp/reports
+        cp reports/data_visualization_l1.html tmp/reports/
+        git add tmp/reports/data_visualization_l1.html
+        git commit -m "Add data visualization report to temporary directory"
+
     - name: Checkout gh-pages branch
       uses: actions/checkout@v2
       with:
@@ -51,9 +60,7 @@ jobs:
 
     - name: Copy HTML report to gh-pages
       run: |
-        cp -r ../reports/data_visualization_l1.html ./reports/
-        git config --global user.email "normaescg@gmail.com"
-        git config --global user.name "Norma-99"
+        cp tmp/reports/data_visualization_l1.html reports/
         git add reports/data_visualization_l1.html
         git commit -m "Add new data visualization report"
         git push origin gh-pages
