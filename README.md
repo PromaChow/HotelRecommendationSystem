@@ -82,6 +82,20 @@ For GitHub Actions:
 2. Click on Settings > Secrets and Variables > Actions.
 3. Add the following secrets: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 
+### Set Up GitHub Pages and GitHub Token
+
+In order to the Dashboards to work, we used GitHub pages, for that we enabled a personal access token with Workflows permissions and GitHub Pages. 
+
+Enable GitHub Pages:
+1.	Go to Repository Settings:
+    - Navigate to the settings of your GitHub repository.
+2.	Scroll to the GitHub Pages Section:
+    - In the repository settings, scroll down to the “GitHub Pages” section.
+3.	Select Branch:
+    - In the “Source” dropdown, select the gh-pages branch.
+4.	Save:
+    - Click “Save” to enable GitHub Pages for your repository.
+
 ### Installations to test locally
 
 Please install Python > 3.8 and all the requirements in the TXT file. Furthermore, you should also have Java installed, for MacOS follow the next commands:
@@ -98,7 +112,7 @@ source ~/.zshrc
 
 To obtain a dataset containing updated hotels and reviews for the Andorran region, and to ensure it is maintained and updated frequently, the Google Places API was utilized. Once the environment is set up, the only action required to retrieve the raw data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `1. Retrieve Hotel Raw Data` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the raw data will be stored in your `andorra-hotels-data-warehouse` bucket.
 
-### Data Gathering Architectural Design
+#### Data Gathering Architectural Design
 ![Data Gathering Architectural Design](img/data_gathering_arch.png)
 
 
@@ -184,10 +198,97 @@ The data extraction process is performed by the GitHub action which follows thes
 This structure contains all corresponding images for each hotel as described in the JSON file. The overall process retrieves information for 50 hotels per region and 100 reviews per hotel. Additionally, all available images for each hotel are retrieved. Since Andorra has 7 regions, a total of information for 350 hotels is gathered.
 
 ### Data Preprocessing
+For the data preprocessing process, we distinguished different types of data. Distinguishing between different data layers (raw data, L1 data, L2 data, and L3 data) is a common practice in data engineering and data science to manage the data transformation process effectively. Each layer represents a different stage of data processing, from the initial collection to the final form ready for analysis or modeling. Here are the definitions for each:
+
+![Types of Data Visual Representation](img/types_of_data.png)
+
+1. **Raw Data:**
+   - Original reviews, ratings, and metadata collected from Google Places API.
+   - Includes all raw text, images, and metadata without any preprocessing.
+
+2. **L1 Data:**
+   - Cleaned reviews and ratings, where missing values are handled, and irrelevant fields are removed.
+   - Basic text cleaning (e.g., removal of HTML tags, lowercasing).
+
+3. **L2 Data:**
+   - Enriched reviews with additional features like sentiment scores, language translation.
+   - Integration with other data sources such as hotel amenities and location data.
+   - Feature engineering to create new columns like review length, average rating per hotel, etc.
+
+4. **L3 Data:**
+   - Final dataset ready for training the recommendation model.
+   - Aggregated features, such as average sentiment score per hotel, overall ratings distribution.
+   - Data split into training, validation, and test sets for model development.
+
+By distinguishing between these data layers, we can maintain a clear and structured workflow, ensuring that each stage of data processing is well-defined and managed. This approach enhances data quality, traceability, and reproducibility, which are critical for effective data science and machine learning projects.
+
+#### Data Preprocessing from Raw Data to L1 Data
+
+Once the data gathering process has run successfully, the only action required to retrieve the L1 data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `2. L1 Data Preprocessing` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the raw data will be stored in your `andorra-hotels-data-warehouse` bucket. The following diagram demonstrated the L1 data preprocessing architectural design. 
+
+![L1 Data Preprocessing Architectural Design](img/l1_data_prepro.png)
+
+To preprocess your hotel data for an NLP network, we need to extract and structure the features from the JSON file that are relevant for text-based analysis and potentially for training a recommendation model. Following, a step-by-step guide on how to preprocess the data to get an L1 data, ready for visualization and a second preprocessing round. 
+
+1. **Load Data**:
+
+For the data treatment we used mainly PySpark. To load the data we followed the next steps:
+    - Initialize PySpark.
+    - Get the dataset schema.
+    - Use `boto3` to load the data from the S3 bucket.
+    - Load the JSON file into a data structure that allows for easy manipulation.
+
+2. **Feature Extraction**:
+For our first data exploration and treatment, we decided to gather the following information: 
+    - **Hotel General Information**:
+        - `hotel_name`: original from Raw Data
+        - `region`: Retrieved the region name from the JSON name
+        - `address`: original from Raw Data
+        - `rating`: original from Raw Data
+        - `user_ratings_total`: original from Raw Data
+        - `business_status`: original from Raw Data
+        - `number_of_photos`: Retrieved the number of photos per hotel
+    - **Review Information**: Extract individual reviews
+        - `user`: original from Raw Data
+        - `rating`: original from Raw Data
+        - `date_in_days`: Transformed the review date to days
+        - `review`: original from Raw Data
+        - `translated review`: Translated the reviews from their original language using the `googletrans` library
+        - `review language`: Detected the review language by using the `langdetect` library
+    
+3. **Text Preprocessing for NLP**:
+Furthermore, to the review texts we decided to add additional transformations so the text is readable by the user: 
+   - **Lowercasing**: Convert all text to lowercase to maintain uniformity.
+   - **Removing Punctuation**: Strip out punctuation marks.
+   - **Removing `\r` and `\n` characters**: Removed enters or tabulations from the reviews.
+   - **Extracted the Review Language**: For each review got the Review language to ensure its suitable for NLP processes.
+   - **Translated Reviews**: If needed the reviews were translated to English. 
+
+4. **Store the Preprocessed Data in the S3 bucket**
+After execution, the following structure will be present in your S3 bucket: 
+
+    ```
+    - andorra-hotels-data-warehouse/
+        - l1_data/
+            - text/
+                - l1_data_<Date> CSV
+    ```
+
+This structure contains all corresponding data after the first preprocessing phase. The overall process retrieves useful information from our Raw Data dataset and stores the result in an S3 bucket.
+
+#### Data Preprocessing from L1 data to L2 data
 TODO
+
+#### Data Preprocessing from L2 data to L3 data
+TODO
+
 
 ### Data Visualization
 TODO
+#### Data Visualization from Raw Data to L1 data
+#### Data Visualization from L1 data to L2 data
+#### Data Visualization from L2 data to L3 data
+
 
 ### Model Training
 TODO
