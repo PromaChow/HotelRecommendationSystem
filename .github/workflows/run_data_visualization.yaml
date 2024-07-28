@@ -35,35 +35,18 @@ jobs:
     
     - name: Get HTML report
       run: |
-        jupyter nbconvert --to html --no-input src/data_visualization.ipynb --output ../reports/data_visualization_l1_$(date +'%Y-%m-%d').html
+        jupyter nbconvert --to html --no-input src/data_visualization.ipynb --output ../reports/data_visualization_l1.html
 
     - name: Upload to S3
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        aws s3 cp reports/data_visualization_l1_$(date +'%Y-%m-%d').html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_l1_$(date +'%Y-%m-%d').html
-
-    - name: Checkout gh-pages branch
-      uses: actions/checkout@v2
-      with:
-        ref: gh-pages
-
-    - name: Copy HTML report to gh-pages
-      run: |
-        date=$(date +'%Y-%m-%d')
-        cp reports/data_visualization_l1_${date}.html data_visualization_l1_${date}.html
-        git config --global user.email "normaescg@gmail.com"
-        git config --global user.name "Norma-99"
-        git add data_visualization_l1_${date}.html
-        git commit -m "Add new data visualization report for ${date}"
-        git push origin gh-pages
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        aws s3 cp reports/data_visualization_l1.html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_l1_$(date +'%Y-%m-%d').html
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GH_TOKEN }}
-        publish_dir: ./
+        publish_dir: ./reports/
         publish_branch: gh-pages
