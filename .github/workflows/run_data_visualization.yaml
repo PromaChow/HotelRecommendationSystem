@@ -43,7 +43,11 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         aws s3 cp reports/data_visualization_l1_$(date +'%Y-%m-%d').html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_l1_$(date +'%Y-%m-%d').html
-
+    - name: Update index.html
+      run: |
+        date=$(date +'%Y-%m-%d')
+        sed -i "s/<date>/${date}/g" index.html
+        
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
