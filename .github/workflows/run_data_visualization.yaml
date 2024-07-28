@@ -53,8 +53,8 @@ jobs:
       run: |
         date=$(date +'%Y-%m-%d')
         sed -i "s/<date>/${date}/g" index.html
-        git config --global user.email "your-email@example.com"
-        git config --global user.name "your-username"
+        git config --global user.email "normaescg@gmail.com"
+        git config --global user.name "Norma-99"
         git add index.html
         git commit -m "Update index.html with latest report link"
         git push origin gh-pages
