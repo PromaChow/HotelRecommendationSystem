@@ -57,6 +57,7 @@ jobs:
         git config --global user.name "Norma-99"
         git add index.html
         git commit -m "Update index.html with latest report link"
+        git remote set-url origin https://Norma-99:${{ secrets.GH_TOKEN }}@github.com/Norma-99/HotelRecommendationSystem.git
         git push origin gh-pages
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
