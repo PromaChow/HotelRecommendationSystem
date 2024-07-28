@@ -20,10 +20,6 @@ This project implements a complete CI/CD ML Pipeline that gathers hotel informat
 
 ![Architectural Flow](img/flow.png)
 
-### First Architectural Diagram
-
-![Architecture](img/architecture.png)
-
 ## Pre-requisites
 
 This project requires both a Google Cloud account and an AWS account.
@@ -102,6 +98,10 @@ source ~/.zshrc
 
 To obtain a dataset containing updated hotels and reviews for the Andorran region, and to ensure it is maintained and updated frequently, the Google Places API was utilized. Once the environment is set up, the only action required to retrieve the raw data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `1. Retrieve Hotel Raw Data` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the raw data will be stored in your `andorra-hotels-data-warehouse` bucket.
 
+### Data Gathering Architectural Design
+![Data Gathering Architectural Design](img/data_gathering_arch.png)
+
+
 #### Data Extraction Process
 
 The data extraction process is performed by the GitHub action which follows these steps:
@@ -112,11 +112,14 @@ The data extraction process is performed by the GitHub action which follows thes
 2. **Access Google Places API:**
    The action uses the credentials to authenticate and connect to the Google Places API.
 
-3. **Make API Requests:**
+3. **Access SerpAPI:**
+    The Action uses the credentials to authenticate and connect to the SerpAPI. 
+
+4. **Make API Requests:**
    - **Find Hotels:** Utilize the Place Search request to find hotels in the specified region.
    - **Get Details:** Use the Place Details request to obtain detailed information about each hotel, including reviews.
 
-4. **Define the Search Requests:**
+5. **Define the Search Requests:**
    - To search for hotels in a specific region (e.g., Andorra la Vella), use the following endpoint:
      ```bash
      https://maps.googleapis.com/maps/api/place/textsearch/json?query=hotels+in+Andorra+la+Vella&key=YOUR_API_KEY
@@ -126,10 +129,10 @@ The data extraction process is performed by the GitHub action which follows thes
      https://maps.googleapis.com/maps/api/place/details/json?place_id=PLACE_ID&key=YOUR_API_KEY
      ```
 
-5. **Download Data and Store in S3 Bucket:**
+6. **Download Data and Store in S3 Bucket:**
    The action downloads the data, including images, and stores them in the S3 bucket.
 
-6. **Define JSON Dataset Format:**
+7. **Define JSON Dataset Format:**
    The data is structured in the following JSON format:
    ```json
    {
@@ -164,7 +167,7 @@ The data extraction process is performed by the GitHub action which follows thes
        "source": "https://maps.googleapis.com/maps/api/place/details/json?place_id=EXAMPLE_PLACE_ID"
    }
 
-7. **Resulting Data in S3 bucket:** After execution, the following structure will be present in your S3 bucket: 
+8. **Resulting Data in S3 bucket:** After execution, the following structure will be present in your S3 bucket: 
 
     ```
     - andorra-hotels-data-warehouse/

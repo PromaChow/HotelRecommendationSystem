@@ -12,10 +12,12 @@ from src.data_gathering import (
     extract_and_download_photos, 
     extract_hotel_data, 
     get_raw_data, 
+    get_serpapi_reviews,
     main
     )
 
 API_KEY = get_parameter('GOOGLE_PLACES_API_KEY')
+SERPAPI_KEY = get_parameter('SERAPI_API_KEY')
 PHOTO_REFERENCE = "AUc7tXXhEGi2Hlczu2QkT_zwLTcNQ8eXESzlwEJN8e6vhbpXn7xXhBKbl2mikhStLYRnHRDhke11Lk5rAZJPKcNH7HzIX0En5vpctCTFkhs_5pj3n90obm7BjkA1A2-ZDU_Ny7HmQEU_qGMQ4xowhyaz9NoEyLv1ReVMP7q-XaEI2iF2Jx1g"
 BUCKET_NAME = "andorra-hotels-data-warehouse"
 
@@ -39,6 +41,18 @@ def test_get_hotel_details():
     place_id = "ChIJVVQbRJv0pRIRz_P-C-3PTcs"
     response = get_hotel_details(place_id, API_KEY)
     assert response
+
+def test_get_serpapi_reviews():
+    place_id = "ChIJVVQbRJv0pRIRz_P-C-3PTcs"
+    reviews = get_serpapi_reviews(place_id, SERPAPI_KEY, 2)
+    assert isinstance(reviews, list)
+    assert isinstance(reviews[0], dict)
+    assert len(reviews) == 2
+
+def test_get_serpapi_reviews_error():
+    place_id = "sthrandom-C-3PTcs"
+    reviews = get_serpapi_reviews(place_id, SERPAPI_KEY, 2)
+    assert [] == reviews
 
 def test_photo_url():
     url = get_photo_url(PHOTO_REFERENCE, API_KEY)
@@ -73,7 +87,7 @@ def test_extract_hotel_data():
     place_id = "ChIJVVQbRJv0pRIRz_P-C-3PTcs"
     details = get_hotel_details(place_id, API_KEY)
     region = "Andorra la Vella"
-    extract_hotel_data(details, API_KEY, 1, BUCKET_NAME, region)
+    extract_hotel_data(details, API_KEY, SERPAPI_KEY, 1, BUCKET_NAME, region)
 
 def test_get_raw_data():
     # I AM NOT GOING TO TEST THE MAIN FUNCION SINCE ITS TESTED WITH THE DATA GATHERING GA
