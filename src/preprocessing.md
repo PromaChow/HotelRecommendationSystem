@@ -1,47 +1,5 @@
 ## Data Preprocessing from Raw Data to L1 data
 
-To preprocess your hotel data for an NLP network, we need to extract and structure the features from the JSON file that are relevant for text-based analysis and potentially for training a recommendation model. Here’s a step-by-step guide on how to preprocess the data to get an L1 data, ready for visualization and a second preprocessing round. 
-
-### Feature extraction
-
-1. **Load Data**:
-   - Load the JSON file into a data structure that allows for easy manipulation, for that we used PySpark
-
-2. **Feature Extraction**:
-   - **Hotel General Information**:
-        - `hotel_name`
-        - `region`
-        - `address`
-        - `rating`
-        - `user_ratings_total`
-        - `business_status`
-        - `number_of_photos`
-   - **Review Information**: Extract individual reviews
-        - `user`
-        - `rating`
-        - `date`
-        - `review`
-        - `translated review`
-        - `review language`
-
-3. **Text Preprocessing for NLP**:
-   - **Lowercasing**: Convert all text to lowercase to maintain uniformity.
-   - **Removing Punctuation**: Strip out punctuation marks.
-   - **Removing `\r` and `\n` characters**: Removed enters or tabulations from the reviews
-   - **Extracted the Review Language**: For each review got the Review language to ensure its suitable for NLP processes
-   - **Translated Reviews**: If needed the reviews were translated to english. \
-
-### Label Definition: Recommendation Label
-
-Features available in the Google API dataset:
-1. **Average Rating**: The average rating of a hotel provides a straightforward measure of its quality based on user feedback.
-2. **Number of Reviews**: The total number of reviews contributes to the reliability and robustness of the average rating.
-
-The average rating will be the primary label inside the Recommendation Models. 
-
-
-### Data Preprocessing CI/CD Pipeline
-
 Initially we thought about using AWS Glue to preprocess the data but ultimately it was decided to use a Pyspark code embedded in a GitHub Action that read and stored the output into the specified S3 path (`s3://andorra-hotels-data-warehouse/l1_data/text/`). Justification for using GitHub Actions over AWS Glue:
 
 **Flexibility and Portability**:
