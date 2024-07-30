@@ -6,6 +6,8 @@
 
 This project implements a complete CI/CD ML Pipeline that gathers hotel information from the Google Places API, stores it in an AWS S3 bucket, and utilizes AWS tools to preprocess, visualize, train, evaluate, and deploy the ML model.
 
+All the reports and dashboards can be found at: https://norma-99.github.io/HotelRecommendationSystem/
+
 ## Table of Contents
 
 - [Architecture](#architecture)
@@ -56,6 +58,20 @@ The last part consists of setting up SerAPI to be able to retreive 100 reviews f
    - In the dashboard, you will find your API key under the "API Key" section.
 6. Save Your API Key: Copy the API key and keep it secure. You will use this key to authenticate your API requests.
 
+### Set Up GitHub Pages and GitHub Token
+
+In order to the Dashboards to work, we used GitHub pages, for that we enabled a personal access token with Workflows permissions and GitHub Pages. 
+
+Enable GitHub Pages:
+1.	Go to Repository Settings:
+    - Navigate to the settings of your GitHub repository.
+2.	Scroll to the GitHub Pages Section:
+    - In the repository settings, scroll down to the “GitHub Pages” section.
+3.	Select Branch:
+    - In the “Source” dropdown, select the gh-pages branch.
+4.	Save:
+    - Click “Save” to enable GitHub Pages for your repository.
+
 ### Set Up Secrets
 
 The final configuration step involves setting up AWS and GitHub secrets to enable GitHub Actions. While the API secrets can be tested locally, they must be stored securely for CI/CD pipeline execution. 
@@ -80,21 +96,8 @@ For GitHub Actions:
 
 1. Go to your GitHub repository.
 2. Click on Settings > Secrets and Variables > Actions.
-3. Add the following secrets: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+3. Add the following secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `GH_TOKEN`.
 
-### Set Up GitHub Pages and GitHub Token
-
-In order to the Dashboards to work, we used GitHub pages, for that we enabled a personal access token with Workflows permissions and GitHub Pages. 
-
-Enable GitHub Pages:
-1.	Go to Repository Settings:
-    - Navigate to the settings of your GitHub repository.
-2.	Scroll to the GitHub Pages Section:
-    - In the repository settings, scroll down to the “GitHub Pages” section.
-3.	Select Branch:
-    - In the “Source” dropdown, select the gh-pages branch.
-4.	Save:
-    - Click “Save” to enable GitHub Pages for your repository.
 
 ### Installations to test locally
 
@@ -283,8 +286,39 @@ TODO
 
 
 ### Data Visualization
-TODO
+
+After every preprocessing step, the corresponding visualization dashboard should be triggered. Visualizing the data once it is preprocessed is a key factor since it allows for the identification of patterns, trends, and anomalies that can inform further analysis, improve model accuracy, and support decision-making by providing clear and interpretable insights.
+Hence, to obtain your visualization dashboard go to GitHub repository, go to Actions, and trigger the corresponding viusalization GitHUb Action.
+
 #### Data Visualization from Raw Data to L1 data
+To execute the first visualization dashboard click on the `3. L1 Data Visualization` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. The following diagram demonstrated the L1 data visualization architectural design. 
+
+![L1 Data Visualization Architectural Design](img/l1_data_viz.png)
+
+For the first visualization dashboard, a Jupyter notebook with the following plots was created: 
+1. Distribution of Ratings
+    - **Histogram of Ratings:** Histogram and table of the distribution of hotel ratings.
+    - **Average Rating per Region:** Bar chart and table showing the average rating of hotels in each region.
+
+2. Reviews Analysis
+    - **Number of Reviews per Hotel:** Bar chart and table showing the total number of reviews for each hotel.
+    - **Review Ratings Distribution:** Histogram of review ratings to understand the sentiment distribution.
+    - **Review Count over Time:** Line chart showing the number of reviews over time to identify trends.
+
+3. Text Analysis
+    - **Word Cloud of Review Text:** Highlight the most frequent words in the reviews.
+    - **Language Distribution:** Pie chart showing the distribution of review languages.
+    - **Sentiment Analysis:** Bar chart or pie chart showing the distribution of positive, neutral, and negative sentiments in reviews.
+
+4. Comparison between Regions
+    - **Review Count Comparison:** Bar chart comparing the number of reviews between regions.
+    - **Sentiment Comparison:** Bar chart comparing sentiment distributions across regions.
+
+5. Business Status Analysis
+    - **Business Status Distribution:** Pie chart showing the distribution of business status (open, closed, etc.).
+
+Once the dashboard was created it pushed the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
+
 #### Data Visualization from L1 data to L2 data
 #### Data Visualization from L2 data to L3 data
 
