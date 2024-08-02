@@ -19,3 +19,4 @@ kaleido
 seaborn
 pyarrow
 pytest-mock
+geopy
