@@ -6,6 +6,8 @@
 
 This project implements a complete CI/CD ML Pipeline that gathers hotel information from the Google Places API, stores it in an AWS S3 bucket, and utilizes AWS tools to preprocess, visualize, train, evaluate, and deploy the ML model.
 
+All the reports and dashboards can be found at: https://norma-99.github.io/HotelRecommendationSystem/
+
 ## Table of Contents
 
 - [Architecture](#architecture)
@@ -42,6 +44,8 @@ To set up a Google Cloud account, follow these steps:
 3. Create a new project named `AndorraHotelsDataCollection`.
 4. Enable the Places API: Navigate to the API Library and enable the "Places API" for your project.
 5. Get your API key: Go to the Credentials page and create an API key. This key will be used to authenticate your requests to the Google Places API.
+6. Enable Google Maps Geocoding API: Navigate to the Google Maps Geocoding API and enable it. 
+7. Get your API key: Go to the credentials page and create an API key.
 
 
 ### SerpAPI account Setup
@@ -56,32 +60,6 @@ The last part consists of setting up SerAPI to be able to retreive 100 reviews f
    - In the dashboard, you will find your API key under the "API Key" section.
 6. Save Your API Key: Copy the API key and keep it secure. You will use this key to authenticate your API requests.
 
-### Set Up Secrets
-
-The final configuration step involves setting up AWS and GitHub secrets to enable GitHub Actions. While the API secrets can be tested locally, they must be stored securely for CI/CD pipeline execution. 
-
-To use AWS Systems Manager Parameter Store:
-
-1. Go to the AWS Management Console.
-2. Navigate to “AWS Systems Manager” > "Parameter Store".
-3. Create three new parameters for your credentials:
-    ```json
-    {
-        "ADMIN_ACCESS_KEY_ID": "aws_access_key_id",
-        "ADMIN_SECRET_ACCESS_KEY": "aws_secret_access_key",
-        "GOOGLE_PLACES_API_KEY": "google_places_api_key",
-        "SERAPI_API_KEY": "serapi_api_key"
-    }
-    ```
-    - Select "Standard" tier and "Secure String".
-4. A function called `get_secrets()` was created to retrieve this information.
-
-For GitHub Actions:
-
-1. Go to your GitHub repository.
-2. Click on Settings > Secrets and Variables > Actions.
-3. Add the following secrets: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-
 ### Set Up GitHub Pages and GitHub Token
 
 In order to the Dashboards to work, we used GitHub pages, for that we enabled a personal access token with Workflows permissions and GitHub Pages. 
@@ -95,6 +73,34 @@ Enable GitHub Pages:
     - In the “Source” dropdown, select the gh-pages branch.
 4.	Save:
     - Click “Save” to enable GitHub Pages for your repository.
+
+### Set Up Secrets
+
+The final configuration step involves setting up AWS and GitHub secrets to enable GitHub Actions. While the API secrets can be tested locally, they must be stored securely for CI/CD pipeline execution. 
+
+To use AWS Systems Manager Parameter Store:
+
+1. Go to the AWS Management Console.
+2. Navigate to “AWS Systems Manager” > "Parameter Store".
+3. Create five new parameters for your credentials:
+    ```json
+    {
+        "ADMIN_ACCESS_KEY_ID": "aws_access_key_id",
+        "ADMIN_SECRET_ACCESS_KEY": "aws_secret_access_key",
+        "GOOGLE_PLACES_API_KEY": "google_places_api_key",
+        "GOOGLE_GEOCODING_KEY": "google_geocoding_api_key",
+        "SERAPI_API_KEY": "serapi_api_key", 
+    }
+    ```
+    - Select "Standard" tier and "Secure String".
+4. A function called `get_secrets()` was created to retrieve this information.
+
+For GitHub Actions:
+
+1. Go to your GitHub repository.
+2. Click on Settings > Secrets and Variables > Actions.
+3. Add the following secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `GH_TOKEN`.
+
 
 ### Installations to test locally
 
@@ -224,11 +230,11 @@ By distinguishing between these data layers, we can maintain a clear and structu
 
 #### Data Preprocessing from Raw Data to L1 Data
 
-Once the data gathering process has run successfully, the only action required to retrieve the L1 data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `2. L1 Data Preprocessing` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the raw data will be stored in your `andorra-hotels-data-warehouse` bucket. The following diagram demonstrated the L1 data preprocessing architectural design. 
+Once the data gathering process has run successfully, the only action required to retrieve the L1 data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `2. Data Preprocessing` GitHub action and select the `l1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the L1 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram demonstrates the L1 data preprocessing architectural design. 
 
 ![L1 Data Preprocessing Architectural Design](img/l1_data_prepro.png)
 
-To preprocess your hotel data for an NLP network, we need to extract and structure the features from the JSON file that are relevant for text-based analysis and potentially for training a recommendation model. Following, a step-by-step guide on how to preprocess the data to get an L1 data, ready for visualization and a second preprocessing round. 
+To preprocess our hotel data for an NLP network, we need to extract and structure the features from the JSON file that are relevant for text-based analysis and potentially for training a recommendation model. Following, a step-by-step guide on how to preprocess the data to get an L1 data, ready for visualization and a second preprocessing round. 
 
 1. **Load Data**:
 
@@ -276,15 +282,77 @@ To preprocess your hotel data for an NLP network, we need to extract and structu
     This structure contains all corresponding data after the first preprocessing phase. The overall process retrieves useful information from our Raw Data dataset and stores the result in an S3 bucket.
 
 #### Data Preprocessing from L1 data to L2 data
-TODO
+
+The second preprocessing step involves converting the L1 data into L2 data. Visualizing our resulting L1 data enabled us to identify unnecessary columns and explore further feature extraction possibilities. To trigger this preprocessing step, navigate to your GitHub repository, go to Actions, and initiate the `2. Data Preprocessing` GitHub action, selecting the `l2` option. If all prerequisites are set correctly, the GitHub Action will execute successfully, and the L2 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram illustrates the L2 data preprocessing architectural design.
+
+![L2 Data Preprocessing Architectural Design](img/data_prepro_l2.png)
+
+To enhance the hotel data for comprehensive analysis, we employed the following techniques:
+
+1. **Remove Duplicates**: Ensured the data is clean by removing any duplicates in the dataset.
+
+2. **Drop Unnecessary Columns**: The following columns were removed:
+    - `review_text`: Only translated reviews were used.
+    - `number_of_photos`: Since only 10 photos per review were gathered, this feature is irrelevant for training.
+    - `business_status`: Visualization of L1 data showed that 99% of hotels had `OPERATIONAL` status, making this feature irrelevant.
+    - `review_user`: User reviews do not impact model training.
+
+3. **Calculate Review Length**: Retrieved each review's character length.
+
+4. **Remove Empty Reviews**: Dropped all empty reviews as they are not useful for NLP training.
+
+5. **Text Tokenization**: Performed the following text transformations:
+    - Tokenized the text, converting reviews into arrays of words.
+    - Removed any remaining stopwords.
+    - Computed Hashing Term Frequency (TF) to understand word frequency in documents.
+    - Computed Inverse Document Frequency (IDF) to understand word importance across the dataset.
+    - Combined TF-IDF features with the original dataset and dropped intermediate columns (`words`, `filtered`, `raw_features`).
+
+6. **Calculate Distances to Ski Resorts and City Center**: Assessed the hotel's connectivity by computing the distance to the city center and the nearest ski resort using the Google Geocoding Database for hotel latitude and longitude.
+
+7. **Data Shuffle**: Shuffled the data to prepare it for splitting into training, validation, and testing datasets.
+
+Once these processes were completed, the data was saved in the `andorra-hotels-data-warehouse` S3 bucket.
+
 
 #### Data Preprocessing from L2 data to L3 data
 TODO
 
 
 ### Data Visualization
-TODO
+
+After every preprocessing step, the corresponding visualization dashboard should be triggered. Visualizing the data once it is preprocessed is a key factor since it allows for the identification of patterns, trends, and anomalies that can inform further analysis, improve model accuracy, and support decision-making by providing clear and interpretable insights.
+Hence, to obtain your visualization dashboard go to GitHub repository, go to Actions, and trigger the corresponding viusalization GitHUb Action.
+
 #### Data Visualization from Raw Data to L1 data
+To execute the first visualization dashboard click on the `3. L1 Data Visualization` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. The following diagram demonstrated the L1 data visualization architectural design. 
+
+![L1 Data Visualization Architectural Design](img/l1_data_viz.png)
+
+For the first visualization dashboard, a Jupyter notebook with the following plots was created: 
+1. Distribution of Ratings
+    - **Histogram of Ratings:** Histogram and table of the distribution of hotel ratings.
+    - **Average Rating per Region:** Bar chart and table showing the average rating of hotels in each region.
+
+2. Reviews Analysis
+    - **Number of Reviews per Hotel:** Bar chart and table showing the total number of reviews for each hotel.
+    - **Review Ratings Distribution:** Histogram of review ratings to understand the sentiment distribution.
+    - **Review Count over Time:** Line chart showing the number of reviews over time to identify trends.
+
+3. Text Analysis
+    - **Word Cloud of Review Text:** Highlight the most frequent words in the reviews.
+    - **Language Distribution:** Pie chart showing the distribution of review languages.
+    - **Sentiment Analysis:** Bar chart or pie chart showing the distribution of positive, neutral, and negative sentiments in reviews.
+
+4. Comparison between Regions
+    - **Review Count Comparison:** Bar chart comparing the number of reviews between regions.
+    - **Sentiment Comparison:** Bar chart comparing sentiment distributions across regions.
+
+5. Business Status Analysis
+    - **Business Status Distribution:** Pie chart showing the distribution of business status (open, closed, etc.).
+
+Once the dashboard was created it pushed the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
+
 #### Data Visualization from L1 data to L2 data
 #### Data Visualization from L2 data to L3 data
 

@@ -168,6 +168,6 @@ tf/terraform*
 
 output/
 input/
-src/plots/
+plots/
 
 .DS_Store

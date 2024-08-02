@@ -16,3 +16,6 @@ nbconvert
 plotly
 colorlover
 kaleido
+seaborn
+pyarrow
+pytest-mock

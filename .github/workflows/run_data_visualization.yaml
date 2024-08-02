@@ -1,4 +1,4 @@
-name: 3. Data Visualization
+name: 3. L1 Data Visualization
 
 on:
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        jupyter nbconvert --to notebook --execute src/data_visualization.ipynb
+        jupyter nbconvert --to notebook --execute src/data_visualization_l1.ipynb
 
     - name: Get HTML report
       run: |

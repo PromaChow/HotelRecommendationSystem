@@ -145,3 +145,12 @@ I used `googletranslate` free library instead of AWS Translate due to its free c
 - AWS Translate has 2M characters for free and then charges 15$ per 1M characters, meaning a total cost of 2.2 * 15$ = 33$
 
 
+### Google Geocoding cost
+
+Google Maps Geocoding API Pricing
+
+Geocoding Requests:
+- First 40,000 requests per month are free.
+- After that, $5.00 USD per 1,000 requests.
+
+Since you have 350 hotels, you would be well within the free tier limit.

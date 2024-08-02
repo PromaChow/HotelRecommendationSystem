@@ -2,6 +2,15 @@ name: 2. Data Preprocessing
 
 on:
   workflow_dispatch:
+    inputs:
+      data_level:
+        description: 'Choose data preprocessing level: l1 or l2'
+        required: true
+        default: 'l1'
+        type: choice
+        options:
+          - l1
+          - l2
 
 jobs:
   preprocess:
@@ -32,4 +41,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          spark-submit --jars jars/hadoop-aws-3.3.1.jar,jars/aws-java-sdk-bundle-1.11.901.jar src/data_preprocessing.py
+          spark-submit --jars jars/hadoop-aws-3.3.1.jar,jars/aws-java-sdk-bundle-1.11.901.jar src/data_preprocessing_${{ github.event.inputs.data_level }}.py

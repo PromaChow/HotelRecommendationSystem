@@ -2,14 +2,10 @@
 # coverage report --show-missing --include=data_preprocessing.py --omit=/tests/
 
 import pytest
-import os
-import boto3
-import pandas as pd
-from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, ArrayType, MapType
 
-from src.data_preprocessing import (
+from src.data_preprocessing_l1 import (
     initialize_spark,
     get_schema,
     convert_to_days,
