@@ -44,6 +44,8 @@ To set up a Google Cloud account, follow these steps:
 3. Create a new project named `AndorraHotelsDataCollection`.
 4. Enable the Places API: Navigate to the API Library and enable the "Places API" for your project.
 5. Get your API key: Go to the Credentials page and create an API key. This key will be used to authenticate your requests to the Google Places API.
+6. Enable Google Maps Geocoding API: Navigate to the Google Maps Geocoding API and enable it. 
+7. Get your API key: Go to the credentials page and create an API key.
 
 
 ### SerpAPI account Setup
@@ -80,13 +82,14 @@ To use AWS Systems Manager Parameter Store:
 
 1. Go to the AWS Management Console.
 2. Navigate to “AWS Systems Manager” > "Parameter Store".
-3. Create three new parameters for your credentials:
+3. Create five new parameters for your credentials:
     ```json
     {
         "ADMIN_ACCESS_KEY_ID": "aws_access_key_id",
         "ADMIN_SECRET_ACCESS_KEY": "aws_secret_access_key",
         "GOOGLE_PLACES_API_KEY": "google_places_api_key",
-        "SERAPI_API_KEY": "serapi_api_key"
+        "GOOGLE_GEOCODING_KEY": "google_geocoding_api_key",
+        "SERAPI_API_KEY": "serapi_api_key", 
     }
     ```
     - Select "Standard" tier and "Secure String".
@@ -227,11 +230,11 @@ By distinguishing between these data layers, we can maintain a clear and structu
 
 #### Data Preprocessing from Raw Data to L1 Data
 
-Once the data gathering process has run successfully, the only action required to retrieve the L1 data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `2. L1 Data Preprocessing` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the raw data will be stored in your `andorra-hotels-data-warehouse` bucket. The following diagram demonstrated the L1 data preprocessing architectural design. 
+Once the data gathering process has run successfully, the only action required to retrieve the L1 data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `2. Data Preprocessing` GitHub action and select the `l1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the L1 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram demonstrates the L1 data preprocessing architectural design. 
 
 ![L1 Data Preprocessing Architectural Design](img/l1_data_prepro.png)
 
-To preprocess your hotel data for an NLP network, we need to extract and structure the features from the JSON file that are relevant for text-based analysis and potentially for training a recommendation model. Following, a step-by-step guide on how to preprocess the data to get an L1 data, ready for visualization and a second preprocessing round. 
+To preprocess our hotel data for an NLP network, we need to extract and structure the features from the JSON file that are relevant for text-based analysis and potentially for training a recommendation model. Following, a step-by-step guide on how to preprocess the data to get an L1 data, ready for visualization and a second preprocessing round. 
 
 1. **Load Data**:
 
@@ -279,7 +282,38 @@ To preprocess your hotel data for an NLP network, we need to extract and structu
     This structure contains all corresponding data after the first preprocessing phase. The overall process retrieves useful information from our Raw Data dataset and stores the result in an S3 bucket.
 
 #### Data Preprocessing from L1 data to L2 data
-TODO
+
+The second preprocessing step involves converting the L1 data into L2 data. Visualizing our resulting L1 data enabled us to identify unnecessary columns and explore further feature extraction possibilities. To trigger this preprocessing step, navigate to your GitHub repository, go to Actions, and initiate the `2. Data Preprocessing` GitHub action, selecting the `l2` option. If all prerequisites are set correctly, the GitHub Action will execute successfully, and the L2 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram illustrates the L2 data preprocessing architectural design.
+
+![L2 Data Preprocessing Architectural Design](img/data_prepro_l2.png)
+
+To enhance the hotel data for comprehensive analysis, we employed the following techniques:
+
+1. **Remove Duplicates**: Ensured the data is clean by removing any duplicates in the dataset.
+
+2. **Drop Unnecessary Columns**: The following columns were removed:
+    - `review_text`: Only translated reviews were used.
+    - `number_of_photos`: Since only 10 photos per review were gathered, this feature is irrelevant for training.
+    - `business_status`: Visualization of L1 data showed that 99% of hotels had `OPERATIONAL` status, making this feature irrelevant.
+    - `review_user`: User reviews do not impact model training.
+
+3. **Calculate Review Length**: Retrieved each review's character length.
+
+4. **Remove Empty Reviews**: Dropped all empty reviews as they are not useful for NLP training.
+
+5. **Text Tokenization**: Performed the following text transformations:
+    - Tokenized the text, converting reviews into arrays of words.
+    - Removed any remaining stopwords.
+    - Computed Hashing Term Frequency (TF) to understand word frequency in documents.
+    - Computed Inverse Document Frequency (IDF) to understand word importance across the dataset.
+    - Combined TF-IDF features with the original dataset and dropped intermediate columns (`words`, `filtered`, `raw_features`).
+
+6. **Calculate Distances to Ski Resorts and City Center**: Assessed the hotel's connectivity by computing the distance to the city center and the nearest ski resort using the Google Geocoding Database for hotel latitude and longitude.
+
+7. **Data Shuffle**: Shuffled the data to prepare it for splitting into training, validation, and testing datasets.
+
+Once these processes were completed, the data was saved in the `andorra-hotels-data-warehouse` S3 bucket.
+
 
 #### Data Preprocessing from L2 data to L3 data
 TODO
