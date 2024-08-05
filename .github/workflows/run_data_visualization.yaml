@@ -1,4 +1,4 @@
-name: 3. L1 Data Visualization
+name: 3. Data Visualization
 
 on:
   workflow_dispatch:
