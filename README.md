@@ -322,12 +322,14 @@ TODO
 ### Data Visualization
 
 After every preprocessing step, the corresponding visualization dashboard should be triggered. Visualizing the data once it is preprocessed is a key factor since it allows for the identification of patterns, trends, and anomalies that can inform further analysis, improve model accuracy, and support decision-making by providing clear and interpretable insights.
-Hence, to obtain your visualization dashboard go to GitHub repository, go to Actions, and trigger the corresponding viusalization GitHUb Action.
+Hence, to obtain your visualization dashboard go to GitHub repository, go to Actions, and trigger the corresponding viusalization GitHub Action.
+
+The following diagram demonstrates the L1 and L2 data visualization architectural design. 
+
+![L1 and L2 Data Visualization Architectural Design](img/data_viz.png)
 
 #### Data Visualization from Raw Data to L1 data
-To execute the first visualization dashboard click on the `3. L1 Data Visualization` GitHub action. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. The following diagram demonstrated the L1 data visualization architectural design. 
-
-![L1 Data Visualization Architectural Design](img/l1_data_viz.png)
+To execute the first visualization dashboard click on the `3. L1 Data Visualization` GitHub action and select the `l1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
 
 For the first visualization dashboard, a Jupyter notebook with the following plots was created: 
 1. Distribution of Ratings
@@ -336,7 +338,7 @@ For the first visualization dashboard, a Jupyter notebook with the following plo
 
 2. Reviews Analysis
     - **Number of Reviews per Hotel:** Bar chart and table showing the total number of reviews for each hotel.
-    - **Review Ratings Distribution:** Histogram of review ratings to understand the sentiment distribution.
+    - **Review Count Comparison:** Bar chart comparing the number of reviews between regions.
     - **Review Count over Time:** Line chart showing the number of reviews over time to identify trends.
 
 3. Text Analysis
@@ -345,7 +347,6 @@ For the first visualization dashboard, a Jupyter notebook with the following plo
     - **Sentiment Analysis:** Bar chart or pie chart showing the distribution of positive, neutral, and negative sentiments in reviews.
 
 4. Comparison between Regions
-    - **Review Count Comparison:** Bar chart comparing the number of reviews between regions.
     - **Sentiment Comparison:** Bar chart comparing sentiment distributions across regions.
 
 5. Business Status Analysis
@@ -354,8 +355,22 @@ For the first visualization dashboard, a Jupyter notebook with the following plo
 Once the dashboard was created it pushed the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
 
 #### Data Visualization from L1 data to L2 data
-#### Data Visualization from L2 data to L3 data
 
+To execute the second visualization dashboard click on the `3. L1 Data Visualization` GitHub action and select the `l2` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
+
+For the second visualization dashboard, a Jupyter notebook with the following plots was created: 
+1. **Review Length Distribution:** Plot the length of each review and its frequency.
+2. **Distance to Ski resorts:** Plot the minimum distance to a ski resort and its frequency.
+3. **Distance to city center:** Plot the minimum distance to the city center per hotel, and its frequency. 
+4. **Ratings vs Distance to Ski resort:** Plot the average rating of a hotel based on the distance to a ski resort. 
+5. **Ratings vs Distance to city center:** Plot the average rating of a hotel based on the distance to the city center.
+6. **Review Text Features:** The plot that visualizes the distribution of values for each feature extracted from the `review_text_features` column in the dataset. 
+Each subplot represents the distribution of one of the features across all reviews, showing how frequently each value occurs.
+
+Once the dashboard was created it pushed the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
+
+#### Data Visualization from L2 data to L3 data
+TODO
 
 ### Model Training
 TODO
