@@ -2,6 +2,15 @@ name: 3. L1 Data Visualization
 
 on:
   workflow_dispatch:
+    inputs:
+      data_level:
+        description: 'Choose data visualization level: l1 or l2'
+        required: true
+        default: 'l1'
+        type: choice
+        options:
+          - l1
+          - l2
 
 jobs:
   build:
@@ -31,18 +40,18 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        jupyter nbconvert --to notebook --execute src/data_visualization_l1.ipynb
+        jupyter nbconvert --to notebook --execute src/data_visualization_${{ github.event.inputs.data_level }}.ipynb
 
     - name: Get HTML report
       run: |
-        jupyter nbconvert --to html --no-input src/data_visualization.ipynb --output ../reports/data_visualization_l1.html
+        jupyter nbconvert --to html --no-input src/data_visualization_${{ github.event.inputs.data_level }}.ipynb --output ../reports/data_visualization_${{ github.event.inputs.data_level }}.html
 
     - name: Upload to S3
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        aws s3 cp reports/data_visualization_l1.html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_l1_$(date +'%Y-%m-%d').html
+        aws s3 cp reports/data_visualization_${{ github.event.inputs.data_level }}.html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_${{ github.event.inputs.data_level }}_$(date +'%Y-%m-%d').html
 
     - name: Create index.html
       run: |
@@ -56,7 +65,8 @@ jobs:
         echo '<body>' >> reports/index.html
         echo '    <h1>Data Visualization Reports</h1>' >> reports/index.html
         echo '    <p>View the latest data visualization report:</p>' >> reports/index.html
-        echo '    <a href="data_visualization_l1.html">Latest Report</a>' >> reports/index.html
+        echo '    <a href="data_visualization_l1.html">Latest L1 Report</a>' >> reports/index.html
+        echo '    <a href="data_visualization_l2.html">Latest L2 Report</a>' >> reports/index.html
         echo '</body>' >> reports/index.html
         echo '</html>' >> reports/index.html
 
