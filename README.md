@@ -383,7 +383,38 @@ TODO
 
 ## License
 
-TODO
+### 1. License Grant
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+### 2. Compliance with External API Terms
+
+Users of this Software are required to comply with the terms of service and usage policies of any external APIs integrated with the Software, including but not limited to:
+
+- [Google APIs Terms of Service](https://developers.google.com/terms)
+- [AWS Service Terms](https://aws.amazon.com/service-terms/)
+
+### 3. Attribution
+
+The Software must include an acknowledgment that it utilizes external APIs provided by Google, AWS, and any other third-party services used in the project. This acknowledgment must be included in the end-user documentation, including a link to the relevant terms of service.
+
+### 4. Disclaimer of Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+### 5. Limitation of Liability
+
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+### 6. Indemnification
+
+You agree to indemnify, defend, and hold harmless the authors and copyright holders from any and all claims, liabilities, damages, losses, or expenses (including reasonable attorneys' fees and costs) arising out of or in any way connected with your use of the Software, violation of this License, or violation of any rights of another.
+
+### 7. Changes to the License
+
+The authors reserve the right to modify this license at any time. Any changes will be documented and will apply only to versions of the Software released after the date of the modification.
+
+By using this Software, you acknowledge that you have read and understood this License, and agree to be bound by its terms and conditions.
 
 ## Contact
 
