@@ -21,3 +21,4 @@ pyarrow
 pytest-mock
 geopy
 fsspec
+s3fs
