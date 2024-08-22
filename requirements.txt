@@ -24,3 +24,4 @@ fsspec
 s3fs
 tensorflow[and-cuda]
 scikit-learn
+torch
