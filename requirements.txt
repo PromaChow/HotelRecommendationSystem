@@ -22,3 +22,5 @@ pytest-mock
 geopy
 fsspec
 s3fs
+tensorflow[and-cuda]
+scikit-learn

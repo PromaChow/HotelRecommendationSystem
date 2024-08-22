@@ -1,6 +1,5 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, length, udf, rand
-from pyspark.ml.feature import Tokenizer, StopWordsRemover, HashingTF, IDF
 from pyspark.sql.types import DoubleType
 from geopy.geocoders import GoogleV3
 from secrets_manager import get_parameter
@@ -47,22 +46,6 @@ def load_and_preprocess_data(spark, csv_file_path):
         .drop('review_text', 'number_of_photos', 'business_status', 'review_user') \
         .withColumn('review_length', length(col('review_text_translated'))) \
         .na.drop(subset=['review_text_translated'])
-
-    # Tokenize and remove stopwords
-    tokenizer = Tokenizer(inputCol="review_text_translated", outputCol="words")
-    l2_data = tokenizer.transform(l2_data)
-    remover = StopWordsRemover(inputCol="words", outputCol="filtered")
-    l2_data = remover.transform(l2_data)
-
-    # Compute TF and IDF
-    hashing_tf = HashingTF(inputCol="filtered", outputCol="raw_features", numFeatures=20)
-    l2_data = hashing_tf.transform(l2_data)
-    idf = IDF(inputCol="raw_features", outputCol="review_text_features")
-    idf_model = idf.fit(l2_data)
-    l2_data = idf_model.transform(l2_data)
-
-    # Drop intermediate columns
-    l2_data = l2_data.drop('words', 'filtered', 'raw_features')
 
     return l2_data
 
@@ -202,7 +185,7 @@ def main():
     l2_data = add_distance_features(l2_data)
 
     # Remove non-relevant columns
-    l2_data = l2_data.drop('address', "review_text_translated")
+    l2_data = l2_data.drop('address')
 
     # Shuffle the DataFrame rows
     shuffled_data = l2_data.orderBy(rand())
