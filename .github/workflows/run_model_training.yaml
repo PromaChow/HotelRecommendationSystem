@@ -29,4 +29,4 @@ jobs:
           aws-region: us-west-2
 
       - name: Run model training
-        run: python model_training.py
+        run: python src/model_training.py
