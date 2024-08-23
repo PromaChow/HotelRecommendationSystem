@@ -6,7 +6,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import boto3
+from io import BytesIO
 from sklearn.model_selection import train_test_split
+from botocore.exceptions import NoCredentialsError
 
 class SimpleNN(nn.Module):
     def __init__(self, input_dim):
@@ -50,30 +52,51 @@ def extract_features(text_features):
     
     return feature_type, size, indices, values
 
-def download_data_from_s3(bucket_name, s3_key, local_file_path):
+def get_latest_parquet_file_path(s3_bucket, input_prefix):
     s3 = boto3.client('s3')
-    s3.download_file(bucket_name, s3_key, local_file_path)
-    print(f"Downloaded {s3_key} from S3 bucket {bucket_name} to {local_file_path}")
+    
+    try:
+        response = s3.list_objects_v2(Bucket=s3_bucket, Prefix=input_prefix)
+        if 'Contents' not in response:
+            raise FileNotFoundError(f"No files found in the specified S3 bucket: {s3_bucket} with prefix: {input_prefix}")
 
-def upload_model_to_s3(bucket_name, s3_key, local_model_path):
+        parquet_files = [obj for obj in response['Contents'] if obj['Key'].endswith('.parquet')]
+        if not parquet_files:
+            raise FileNotFoundError(f"No Parquet files found in the specified S3 bucket: {s3_bucket} with prefix: {input_prefix}")
+        
+        latest_file = max(parquet_files, key=lambda x: x['LastModified'])
+        return f"s3://{s3_bucket}/{latest_file['Key']}"
+    
+    except NoCredentialsError:
+        raise NoCredentialsError("AWS credentials not found. Please configure your credentials.")
+    
+def download_data_from_s3(bucket_name, s3_key):
     s3 = boto3.client('s3')
-    s3.upload_file(local_model_path, bucket_name, s3_key)
-    print(f"Uploaded model to S3 bucket {bucket_name} at {s3_key}")
+    obj = s3.get_object(Bucket=bucket_name, Key=s3_key)
+    df = pd.read_parquet(BytesIO(obj['Body'].read()))
+    print(f"Downloaded {s3_key} from S3 bucket {bucket_name}")
+    return df
+
+def upload_model_to_s3(bucket_name, s3_key, model):
+    s3 = boto3.client('s3')
+    
+    # Save the model to a BytesIO object
+    with BytesIO() as buffer:
+        torch.save(model.state_dict(), buffer)
+        buffer.seek(0)
+        s3.upload_fileobj(buffer, bucket_name, s3_key)
+        print(f"Uploaded model to S3 bucket {bucket_name} at {s3_key}")
 
 def main():
     # S3 details
     bucket_name = 'andorra-hotels-data-warehouse'
     s3_data_key = 'l3_data/text/l2_data_2024-08-21_08-11-52.parquet'
     s3_model_key = f'models/simple_nn_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}.pth'
-    local_data_path = 'model/local_data.parquet'
-    local_model_path = 'model/hotel_recom_model.pth'
 
     # Download data from S3
-    download_data_from_s3(bucket_name, s3_data_key, local_data_path)
+    parquet_file_path = get_latest_parquet_file_path(s3_bucket=bucket_name, input_prefix=s3_data_key)
+    df = download_data_from_s3(bucket_name=bucket_name, s3_key=parquet_file_path)
 
-    # Load the dataset
-    df = pd.read_parquet(local_data_path)
-    
     # Apply the function to extract type, size, indices, and values
     df['type'], df['size'], df['indices'], df['values'] = zip(*df['review_text_features'].apply(extract_features))
 
@@ -141,12 +164,8 @@ def main():
         test_loss = criterion(test_outputs, y_test.unsqueeze(1))
         print(f'Test Loss: {test_loss.item():.4f}')
 
-    # Save the model locally
-    torch.save(model.state_dict(), local_model_path)
-    print(f"Model saved locally at {local_model_path}")
-
     # Upload the model to S3
-    upload_model_to_s3(bucket_name, s3_model_key, local_model_path)
+    upload_model_to_s3(bucket_name, s3_model_key, model)
 
 if __name__ == "__main__":
     main()
