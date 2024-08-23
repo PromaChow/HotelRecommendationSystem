@@ -95,7 +95,8 @@ def main():
 
     # Download data from S3
     parquet_file_path = get_latest_parquet_file_path(s3_bucket=bucket_name, input_prefix=s3_data_key)
-    df = download_data_from_s3(bucket_name=bucket_name, s3_key=parquet_file_path)
+    df = pd.read_parquet(parquet_file_path)
+    # df = download_data_from_s3(bucket_name=bucket_name, s3_key=parquet_file_path)
 
     # Apply the function to extract type, size, indices, and values
     df['type'], df['size'], df['indices'], df['values'] = zip(*df['review_text_features'].apply(extract_features))
