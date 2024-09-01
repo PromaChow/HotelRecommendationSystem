@@ -1,9 +1,12 @@
 from pyspark.sql import SparkSession
 from pyspark.ml.feature import Tokenizer, StopWordsRemover, HashingTF, IDF
+from textblob import TextBlob
 import boto3
 from botocore.exceptions import NoCredentialsError
 import pandas as pd
+import numpy as np
 from datetime import datetime
+from gensim.models import Word2Vec
 
 def initialize_spark():
     """
@@ -67,7 +70,7 @@ def preprocess_data(l2_data):
     # Assigning IDs to 'hotel_name'
     l2_data['hotel_id'] = l2_data['hotel_name'].astype('category').cat.codes
 
-    # Dropping the original 'region', 'hotel_name', and 'review_language' columns since we have encoded them
+    # Dropping the original 'region', 'review_language', and 'hotel_name' columns since we have encoded them
     l2_data = l2_data.drop(['region', 'review_language', 'hotel_name'], axis=1)
 
     # Remove the 'latitude' and 'longitude' columns
@@ -76,6 +79,41 @@ def preprocess_data(l2_data):
     # Concatenating the encoded columns with the original DataFrame
     l2_data = pd.concat([l2_data, df_region_encoded, df_language_encoded], axis=1)
 
+    return l2_data
+
+def add_sentiment_analysis(l2_data):
+    """
+    Perform sentiment analysis on the review text.
+    """
+    def analyze_sentiment(text):
+        return TextBlob(text).sentiment.polarity
+    
+    l2_data['sentiment'] = l2_data['review_text_translated'].apply(analyze_sentiment)
+    return l2_data
+
+def add_word_embeddings(l2_data):
+    """
+    Add word embeddings using Word2Vec, storing the embedding vector as a list in a single column.
+    """
+    # Tokenize text for word embeddings
+    l2_data['tokenized_review'] = l2_data['review_text_translated'].apply(lambda x: x.split())
+
+    # Train Word2Vec model on the tokenized reviews
+    model = Word2Vec(sentences=l2_data['tokenized_review'], vector_size=100, window=5, min_count=1, workers=4)
+
+    def get_average_embedding(tokens):
+        vectors = [model.wv[word] for word in tokens if word in model.wv]
+        if vectors:
+            return np.mean(vectors, axis=0).tolist()  # Convert ndarray to list
+        else:
+            return [0.0] * model.vector_size  # Return a list of zeros if no valid words
+
+    # Apply the embedding to each review and keep it as a single column
+    l2_data['embedding'] = l2_data['tokenized_review'].apply(get_average_embedding)
+
+    # Drop the 'tokenized_review' column as it's no longer needed
+    l2_data = l2_data.drop(['tokenized_review'], axis=1)
+    
     return l2_data
 
 def process_nlp(l3_data):
@@ -126,7 +164,7 @@ def save_to_s3(df, s3_bucket, output_prefix, current_datetime):
     temp_parquet_file = temp_output_files[0]
     
     # Define the final output file name and path
-    output_file_name = f"l2_data_{current_datetime}.parquet"
+    output_file_name = f"l3_data_{current_datetime}.parquet"
     final_output_path = f"{output_prefix}{output_file_name}"
     
     # Move the Parquet file to the final output path
@@ -158,7 +196,13 @@ def main():
     # Preprocess the data
     l2_data = preprocess_data(l2_data)
 
-    # Add NLP to the text features
+    # Add Sentiment Analysis
+    l2_data = add_sentiment_analysis(l2_data)
+
+    # Add Word Embeddings
+    l2_data = add_word_embeddings(l2_data)
+
+    # Add NLP processing
     l3_data = spark.createDataFrame(l2_data)
     l3_data = process_nlp(l3_data)
 
