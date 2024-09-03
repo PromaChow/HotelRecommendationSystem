@@ -1,24 +1,8 @@
-from pyspark.sql import SparkSession
-from pyspark.ml.feature import Tokenizer, StopWordsRemover, HashingTF, IDF
-from textblob import TextBlob
 import boto3
 from botocore.exceptions import NoCredentialsError
 import pandas as pd
-import numpy as np
 from datetime import datetime
-from gensim.models import Word2Vec
-
-def initialize_spark():
-    """
-    Initialize Spark session with Hadoop AWS package for S3 access.
-    """
-    return SparkSession.builder \
-        .appName("HotelDataProcessingL3") \
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.1") \
-        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-        .config("spark.hadoop.fs.s3a.aws.credentials.provider", "com.amazonaws.auth.DefaultAWSCredentialsProviderChain") \
-        .config("spark.hadoop.fs.s3a.endpoint", "s3.amazonaws.com") \
-        .getOrCreate()
+import os
 
 def get_latest_parquet_file_path(s3_bucket, input_prefix):
     """
@@ -37,7 +21,7 @@ def get_latest_parquet_file_path(s3_bucket, input_prefix):
             raise FileNotFoundError(f"No Parquet files found in the specified S3 bucket: {s3_bucket} with prefix: {input_prefix}")
         
         latest_file = max(parquet_files, key=lambda x: x['LastModified'])
-        return f"s3a://{s3_bucket}/{latest_file['Key']}"
+        return f"s3://{s3_bucket}/{latest_file['Key']}"
     
     except NoCredentialsError:
         raise NoCredentialsError("AWS credentials not found. Please configure your credentials.")
@@ -81,105 +65,28 @@ def preprocess_data(l2_data):
 
     return l2_data
 
-def add_sentiment_analysis(l2_data):
-    """
-    Perform sentiment analysis on the review text.
-    """
-    def analyze_sentiment(text):
-        return TextBlob(text).sentiment.polarity
-    
-    l2_data['sentiment'] = l2_data['review_text_translated'].apply(analyze_sentiment)
-    return l2_data
-
-def add_word_embeddings(l2_data):
-    """
-    Add word embeddings using Word2Vec, storing the embedding vector as a list in a single column.
-    """
-    # Tokenize text for word embeddings
-    l2_data['tokenized_review'] = l2_data['review_text_translated'].apply(lambda x: x.split())
-
-    # Train Word2Vec model on the tokenized reviews
-    model = Word2Vec(sentences=l2_data['tokenized_review'], vector_size=100, window=5, min_count=1, workers=4)
-
-    def get_average_embedding(tokens):
-        vectors = [model.wv[word] for word in tokens if word in model.wv]
-        if vectors:
-            return np.mean(vectors, axis=0).tolist()  # Convert ndarray to list
-        else:
-            return [0.0] * model.vector_size  # Return a list of zeros if no valid words
-
-    # Apply the embedding to each review and keep it as a single column
-    l2_data['embedding'] = l2_data['tokenized_review'].apply(get_average_embedding)
-
-    # Drop the 'tokenized_review' column as it's no longer needed
-    l2_data = l2_data.drop(['tokenized_review'], axis=1)
-    
-    return l2_data
-
-def process_nlp(l3_data):
-    """
-    Perform NLP tasks: Tokenization, stopword removal, and TF-IDF.
-    """
-    # Tokenize and remove stopwords
-    tokenizer = Tokenizer(inputCol="review_text_translated", outputCol="words")
-    l3_data = tokenizer.transform(l3_data)
-
-    remover = StopWordsRemover(inputCol="words", outputCol="filtered")
-    l3_data = remover.transform(l3_data)
-
-    # Compute TF and IDF
-    hashing_tf = HashingTF(inputCol="filtered", outputCol="raw_features", numFeatures=20)
-    l3_data = hashing_tf.transform(l3_data)
-
-    idf = IDF(inputCol="raw_features", outputCol="review_text_features")
-    idf_model = idf.fit(l3_data)
-    l3_data = idf_model.transform(l3_data)
-
-    # Drop intermediate columns
-    l3_data = l3_data.drop('words', 'filtered', 'raw_features', 'review_text_translated')
-
-    return l3_data
-
 def save_to_s3(df, s3_bucket, output_prefix, current_datetime):
     """
-    Save the DataFrame as a single Parquet file to S3.
+    Save the DataFrame as a single Parquet file to S3 using boto3.
     """
-    # Define the temporary output path for Parquet files
-    temp_output_path = f"s3a://{s3_bucket}/{output_prefix}temp_output/"
-    
-    # Write the DataFrame in Parquet format to the temporary output path
-    df.coalesce(1).write.mode("overwrite").parquet(temp_output_path)
-    
-    # Initialize boto3 client
-    s3 = boto3.client('s3')
-    
-    # List the Parquet files in the temporary output path
-    response = s3.list_objects_v2(Bucket=s3_bucket, Prefix=f"{output_prefix}temp_output/")
-    temp_output_files = [f['Key'] for f in response.get('Contents', []) if f['Key'].endswith(".parquet")]
-    
-    if not temp_output_files:
-        raise FileNotFoundError("No Parquet file found in the temporary output directory.")
-    
-    # There should be only one Parquet file in the coalesced output
-    temp_parquet_file = temp_output_files[0]
-    
-    # Define the final output file name and path
+    # Define the local temporary file path
+    local_temp_path = f"/tmp/l3_data_{current_datetime}.parquet"
+
+    # Save the DataFrame to a local Parquet file
+    df.to_parquet(local_temp_path, engine='pyarrow', index=False)
+
+    # Define the S3 output file name and path
     output_file_name = f"l3_data_{current_datetime}.parquet"
     final_output_path = f"{output_prefix}{output_file_name}"
-    
-    # Move the Parquet file to the final output path
-    copy_source = {'Bucket': s3_bucket, 'Key': temp_parquet_file}
-    s3.copy_object(CopySource=copy_source, Bucket=s3_bucket, Key=final_output_path)
-    
-    # Delete the temporary files and directory
-    for file in temp_output_files:
-        s3.delete_object(Bucket=s3_bucket, Key=file)
-    s3.delete_object(Bucket=s3_bucket, Key=f"{output_prefix}temp_output/")
+
+    # Upload the local Parquet file to S3
+    s3 = boto3.client('s3', region_name='us-west-2')
+    s3.upload_file(local_temp_path, s3_bucket, final_output_path)
+
+    # Remove the local temporary file
+    os.remove(local_temp_path)
 
 def main():
-    # Initialize Spark session
-    spark = initialize_spark()
-
     # S3 bucket details
     s3_bucket = 'andorra-hotels-data-warehouse'
     input_prefix = 'l2_data/text/'
@@ -194,23 +101,10 @@ def main():
     l2_data = load_data(parquet_file_path)
 
     # Preprocess the data
-    l2_data = preprocess_data(l2_data)
-
-    # Add Sentiment Analysis
-    l2_data = add_sentiment_analysis(l2_data)
-
-    # Add Word Embeddings
-    l2_data = add_word_embeddings(l2_data)
-
-    # Add NLP processing
-    l3_data = spark.createDataFrame(l2_data)
-    l3_data = process_nlp(l3_data)
+    l3_data = preprocess_data(l2_data)
 
     # Save the final data to S3
     save_to_s3(l3_data, s3_bucket, output_prefix, current_datetime)
-
-    # Stop the Spark cluster
-    spark.stop()
 
 if __name__ == "__main__":
     main()
