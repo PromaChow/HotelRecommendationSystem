@@ -39,18 +39,19 @@ Which NLP techniques could we use??
    - **Why:** LDA can uncover hidden topics within reviews, which might correlate with different ratings. For example, reviews discussing "cleanliness" might have different ratings than those discussing "location."
    - **How:** Use LDA to assign topic probabilities to each review. These topic distributions can serve as features, helping the model understand which aspects of a review contribute to the rating.
 
-7. **BERT or Transformer-based Embeddings:**
-   - **Why:** Transformer-based models like BERT capture context at a much deeper level, understanding nuances and word dependencies that traditional methods might miss. This can be especially powerful for capturing complex relationships in the text.
-   - **How:** You can use pre-trained BERT embeddings or fine-tune a BERT model on your dataset. Extract embeddings from the [CLS] token, which can represent the entire review, and use these embeddings as features.
-
 Once we decide which NLP techniques to explore, we should visualize them and see which one is the most likely to be fruitful in the training phase. 
+
+
 
 ### COURSE OF ACTION
 
-
 - [X] Take out NLP entirely from L3 preprocessing. (1h)
-- [ ] Do a visualization dashboard with all the NLP techniques and decide which one is the one we should select. (3h)
-- [ ] Create a `data_preprocessing_training_ready.py` where all the necessary transformations before the model will be performed (also chosen NLP technique). (2h)
+- [X] Do a visualization dashboard with all the NLP techniques and decide which one is the one we should select. (3h)
+- [X] Create a `data_preprocessing_nlp.py` where all the necessary transformations before the model will be performed (also chosen NLP technique). (2h)
+- [ ] Re-write L1, L2 sections with modifications made (2h)
+- [ ] Write L3 preprocessing section (1h)
+- [ ] Write NLP section (2h)
+- [ ] Write NLP results (3h)
 - [ ] Select my model label and evaluation metrics. (4h)
 - [ ] Create a basic ML model that uses my preprocessed data and the selected evaluation metrics.
 - [ ] Analyze the results and create a way to evaluate the ML models created
