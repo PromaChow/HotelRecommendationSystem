@@ -47,7 +47,7 @@ Once we decide which NLP techniques to explore, we should visualize them and see
 
 - [X] Take out NLP entirely from L3 preprocessing. (1h)
 - [X] Do a visualization dashboard with all the NLP techniques and decide which one is the one we should select. (3h)
-- [X] Create a `data_preprocessing_nlp.py` where all the necessary transformations before the model will be performed (also chosen NLP technique). (2h)
+- [X] Create a `data_preprocessing_nlp.py` where all the necessary transformations before the model will be performed (also chosen NLP techniques). (2h)
 - [ ] Re-write L1, L2 sections with modifications made (2h)
 - [ ] Write L3 preprocessing section (1h)
 - [ ] Write NLP section (2h)

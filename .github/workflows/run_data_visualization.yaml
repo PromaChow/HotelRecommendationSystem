@@ -4,13 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       data_level:
-        description: 'Choose data visualization level: l1 or l2'
+        description: 'Choose data visualization level: l1, l2 or nlp'
         required: true
         default: 'l1'
         type: choice
         options:
           - l1
           - l2
+          - nlp
 
 jobs:
   build:
@@ -51,7 +52,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        aws s3 cp reports/data_visualization_${{ github.event.inputs.data_level }}.html s3://andorra-hotels-data-warehouse/l1_data/reports/data_visualization_${{ github.event.inputs.data_level }}_$(date +'%Y-%m-%d').html
+        aws s3 cp reports/data_visualization_${{ github.event.inputs.data_level }}.html s3://andorra-hotels-data-warehouse/${{ github.event.inputs.data_level }}_data/reports/data_visualization_${{ github.event.inputs.data_level }}_$(date +'%Y-%m-%d').html
 
     - name: Create index.html
       run: |

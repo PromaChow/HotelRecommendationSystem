@@ -2,6 +2,15 @@ name: 4. Model Training
 
 on:
   workflow_dispatch:
+    inputs:
+      training_level:
+        description: 'Choose model training level: nlp or supervised'
+        required: true
+        default: 'nlp'
+        type: choice
+        options:
+          - nlp
+          - sup
 
 jobs:
   train-model:
@@ -29,4 +38,4 @@ jobs:
           aws-region: us-west-2
 
       - name: Run model training
-        run: python src/model_training.py
+        run: python src/${{ github.event.inputs.training_level }}_training.py
