@@ -297,26 +297,42 @@ To enhance the hotel data for comprehensive analysis, we employed the following 
     - `business_status`: Visualization of L1 data showed that 99% of hotels had `OPERATIONAL` status, making this feature irrelevant.
     - `review_user`: User reviews do not impact model training.
 
-3. **Calculate Review Length**: Retrieved each review's character length.
+<!-- 3. **Calculate Review Length**: Retrieved each review's character length. -->
 
-4. **Remove Empty Reviews**: Dropped all empty reviews as they are not useful for NLP training.
+3. **Remove Empty Reviews**: Dropped all empty reviews as they are not useful for NLP training.
 
-5. **Text Tokenization**: Performed the following text transformations:
+<!-- 5. **Text Tokenization**: Performed the following text transformations:
     - Tokenized the text, converting reviews into arrays of words.
     - Removed any remaining stopwords.
     - Computed Hashing Term Frequency (TF) to understand word frequency in documents.
     - Computed Inverse Document Frequency (IDF) to understand word importance across the dataset.
-    - Combined TF-IDF features with the original dataset and dropped intermediate columns (`words`, `filtered`, `raw_features`).
+    - Combined TF-IDF features with the original dataset and dropped intermediate columns (`words`, `filtered`, `raw_features`). -->
 
-6. **Calculate Distances to Ski Resorts and City Center**: Assessed the hotel's connectivity by computing the distance to the city center and the nearest ski resort using the Google Geocoding Database for hotel latitude and longitude.
+4. **Calculate Distances to Ski Resorts and City Center**: Assessed the hotel's connectivity by computing the distance to the city center and the nearest ski resort using the Google Geocoding Database for hotel latitude and longitude.
 
-7. **Data Shuffle**: Shuffled the data to prepare it for splitting into training, validation, and testing datasets.
+5. **Data Shuffle**: Shuffled the data to prepare it for splitting into training, validation, and testing datasets.
 
 Once these processes were completed, the data was saved in the `andorra-hotels-data-warehouse` S3 bucket.
 
 
 #### Data Preprocessing from L2 data to L3 data
-TODO
+
+The third and final preprocessing step involved converting the L2 data into L3 data prepared for NLP treatment. To trigger this preprocessing step, navigate to GitHub repository, go to Actions, and initiate the `2. Data Preprocessing` GitHub Action, selecting the `l3` option. If all prerequisites are set correctly the GitHub Action will execute successfully, and the L3 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram illustrates the L3 preprocessing architectural design. 
+
+![L3 Data Preprocessing Architectural Design](img/data_preprocessing_l3.png)\
+
+To prepare the data for model training we employed the following techniques: 
+
+1. **Aggregate groups**: We aggregated the languages that had a less than 2% presence to avoid overfitting. 
+
+2. **One hot encoding**: We one-hot encoded the `region` and the `review_lang` features to interpret categorical data more effectively.
+
+3. **Categorical encoding**: We encoded categorically the `hotel_name` feature, giving it an ID for future hotel name retrieval at evaluation. 
+
+4. **Drop Unnecessary columns**: We dropped the `latitude` and `longitude` columns since the information was already encoded in another features. 
+
+Once these processes were completed, the data was saved in the `andorra-hotels-data-warehouse` S3 bucket.
+
 
 
 ### Data Visualization
@@ -329,7 +345,7 @@ The following diagram demonstrates the L1 and L2 data visualization architectura
 ![L1 and L2 Data Visualization Architectural Design](img/data_viz.png)
 
 #### Data Visualization from Raw Data to L1 data
-To execute the first visualization dashboard click on the `3. L1 Data Visualization` GitHub action and select the `l1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
+To execute the first visualization dashboard click on the `3. Data Visualization` GitHub action and select the `l1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
 
 For the first visualization dashboard, a Jupyter notebook with the following plots was created: 
 1. Distribution of Ratings
@@ -341,13 +357,13 @@ For the first visualization dashboard, a Jupyter notebook with the following plo
     - **Review Count Comparison:** Bar chart comparing the number of reviews between regions.
     - **Review Count over Time:** Line chart showing the number of reviews over time to identify trends.
 
-3. Text Analysis
+<!-- 3. Text Analysis
     - **Word Cloud of Review Text:** Highlight the most frequent words in the reviews.
     - **Language Distribution:** Pie chart showing the distribution of review languages.
-    - **Sentiment Analysis:** Bar chart or pie chart showing the distribution of positive, neutral, and negative sentiments in reviews.
+    - **Sentiment Analysis:** Bar chart or pie chart showing the distribution of positive, neutral, and negative sentiments in reviews. -->
 
-4. Comparison between Regions
-    - **Sentiment Comparison:** Bar chart comparing sentiment distributions across regions.
+<!-- 4. Comparison between Regions
+    - **Sentiment Comparison:** Bar chart comparing sentiment distributions across regions. -->
 
 5. Business Status Analysis
     - **Business Status Distribution:** Pie chart showing the distribution of business status (open, closed, etc.).
@@ -356,23 +372,57 @@ Once the dashboard was created it pushed the report both to GitHub Pages and to 
 
 #### Data Visualization from L1 data to L2 data
 
-To execute the second visualization dashboard click on the `3. L1 Data Visualization` GitHub action and select the `l2` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
+To execute the second visualization dashboard click on the `3. Data Visualization` GitHub action and select the `l2` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
 
 For the second visualization dashboard, a Jupyter notebook with the following plots was created: 
-1. **Review Length Distribution:** Plot the length of each review and its frequency.
+<!-- 1. **Review Length Distribution:** Plot the length of each review and its frequency. -->
+
 2. **Distance to Ski resorts:** Plot the minimum distance to a ski resort and its frequency.
+
 3. **Distance to city center:** Plot the minimum distance to the city center per hotel, and its frequency. 
-4. **Ratings vs Distance to Ski resort:** Plot the average rating of a hotel based on the distance to a ski resort. 
+
+4. **Ratings vs Distance to Ski resort:** Plot the average rating of a hotel based on the distance to a ski resort.
+
 5. **Ratings vs Distance to city center:** Plot the average rating of a hotel based on the distance to the city center.
-6. **Review Text Features:** The plot that visualizes the distribution of values for each feature extracted from the `review_text_features` column in the dataset. 
-Each subplot represents the distribution of one of the features across all reviews, showing how frequently each value occurs.
+
+<!-- 6. **Review Text Features:** The plot that visualizes the distribution of values for each feature extracted from the `review_text_features` column in the dataset. 
+Each subplot represents the distribution of one of the features across all reviews, showing how frequently each value occurs. -->
 
 Once the dashboard was created it pushed the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
 
-#### Data Visualization from L2 data to L3 data
-TODO
 
 ### Model Training
+
+We opted for a two-folded Model Training technique. Started with NLP Evaluation dashboard and then added a supervised learning model. 
+
+#### NLP Dashboard and final implementation
+
+Once you gather your L3 data, the next step is to process our `review_text_translated` feature using NLP techniques. For that, we created a dashboard file called `data_visualization_nlp.ipynb` where 6 different NLP techniques are applied to the text feature and some visualization aids are given so the ML experts can decide which techniques to apply inside the final model. 
+
+To execute the NLP visualization dashboard click on the `3. Data Visualization` GitHub action and select the `nlp` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
+
+The NLP techniques used are the following: 
+
+1. **TF-IDF (Term Frequency-Inverse Document Frequency):** TF-IDF is a well-established method that helps identify the importance of words in a document relative to the entire dataset. It balances the frequency of words with their distinctiveness across the dataset, which is crucial when dealing with a large number of reviews.
+
+2. **Word Embeddings (Word2Vec):** Word embeddings capture the semantic meaning of words in a continuous vector space, where words with similar meanings are close to each other. This is particularly useful for capturing nuances in review text.
+
+3. **N-grams (Bi-grams):** While individual words are informative, certain combinations of words (like "not good," "highly recommend") carry significant meaning. N-grams can help capture these phrases.
+
+4. **Sentiment Analysis:** Sentiment polarity (positive, negative) and intensity can be directly related to the ratings. A strongly positive review is likely to have a higher rating, and vice versa.
+
+5. **Review length distribution:** The length of the review might correlate with the detail and thoroughness of the review, which in turn might influence the rating.
+
+6. **Topic Modeling (LDA - Latent Dirichlet Allocation):** LDA can uncover hidden topics within reviews, which might correlate with different ratings. For example, reviews discussing "cleanliness" might have different ratings than those discussing "location."
+
+Once the dashboard was created it pushed the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
+
+
+After the Dashboard is executed, the ML expert should decide which of these 6 techniques are going to be fruitful for the later ML training, and compute the `nlp_training.py` logic. To do so, go to your GitHub Actions, click on the `4. Model Training` GitHub Action and select the `nlp` option. In the arguments, select which NLP technique should be used for the training and execute the action. 
+
+The action will then add the NLP techniques into your dataset and do a final preparation (such as normalizing the data) for the final ML training. 
+
+#### ML Model
 TODO
 
 ### Model Evaluation
@@ -380,6 +430,11 @@ TODO
 
 ### Model Deployment
 TODO
+
+
+After completing all the GitHub Actions, you should have a successful model deployed in a Cloud environment, the flow diagram of the actions required are the following:
+
+![Flow of all the GitHub Actions to trigger for a successful deployment](img/actions_trigger.png)
 
 ## License
 

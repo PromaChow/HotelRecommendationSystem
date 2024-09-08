@@ -170,5 +170,6 @@ output/
 input/
 plots/
 model/
+old/
 
 .DS_Store
