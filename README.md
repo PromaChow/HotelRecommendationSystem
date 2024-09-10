@@ -401,6 +401,10 @@ Once you gather your L3 data, the next step is to process our `review_text_trans
 
 To execute the NLP visualization dashboard click on the `3. Data Visualization` GitHub action and select the `nlp` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
 
+The following diagram demonstrates the NLP architectural process. 
+
+![NLP Architecture](img/nlp_training.png)
+
 The NLP techniques used are the following: 
 
 1. **TF-IDF (Term Frequency-Inverse Document Frequency):** TF-IDF is a well-established method that helps identify the importance of words in a document relative to the entire dataset. It balances the frequency of words with their distinctiveness across the dataset, which is crucial when dealing with a large number of reviews.

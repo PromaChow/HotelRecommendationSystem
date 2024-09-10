@@ -28,3 +28,4 @@ torch
 gensim
 textstat
 transformers
+nltk

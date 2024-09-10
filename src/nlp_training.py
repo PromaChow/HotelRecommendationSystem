@@ -11,6 +11,7 @@ from textblob import TextBlob
 from sklearn.feature_extraction.text import CountVectorizer
 from gensim.models.ldamodel import LdaModel
 from gensim.corpora import Dictionary
+from collections import Counter
 
 def get_latest_parquet_file_path(s3_bucket, input_prefix):
     """
@@ -135,6 +136,24 @@ def apply_lda(df, num_topics=5):
     topic_distributions = df['review_text_translated'].apply(get_topics_for_review)
     topic_df = pd.DataFrame(topic_distributions.tolist(), columns=[f'topic_{i}' for i in range(num_topics)])
     
+    # Assign meaningful names to the topics based on the most frequent words
+    topic_keywords = []
+    for idx, topic in lda_model.print_topics(num_topics=num_topics, num_words=5):
+        # Extract the top 5 keywords from each topic
+        words = [word.split('*')[1].replace('"', '').strip() for word in topic.split('+')]
+        topic_keywords.append(words)
+    
+    # Create a dictionary to map topic index to a "meaningful name" based on keywords
+    topic_names = []
+    for idx, words in enumerate(topic_keywords):
+        # For simplicity, let's assign the first dominant keyword as the topic name
+        common_words = Counter(words)
+        topic_names.append(f"topic_{idx}_{'_'.join(common_words.most_common(1)[0][0].split())}")
+    
+    # Rename the topic columns to meaningful names
+    topic_df.columns = topic_names
+
+    # Combine the original dataframe with the topic distributions dataframe
     return pd.concat([df, topic_df], axis=1)
 
 # Function to apply Text Length and Readability
@@ -175,11 +194,14 @@ def main():
     # df = pd.read_parquet("output/l3_data_2024-09-03_16-49-31.parquet", engine="pyarrow")
 
     # Apply selected NLP techniques
-    selected_techniques = ['tfidf', "w2v", 'sentiment', 'lda', "length"]
+    selected_techniques = ["w2v", 'sentiment', 'lda', "length"]
     df_with_nlp = apply_nlp_techniques(df, selected_techniques)
 
+    # Drop the review_text_translated column
+    df_with_nlp.drop(columns=['review_text_translated'], inplace=True)
+
     # Save the new DataFrame with NLP features
-    df_with_nlp.to_parquet('output/nlp_result_data.parquet')
+    # df_with_nlp.to_parquet('output/nlp_result_data.parquet')
     save_to_s3(df_with_nlp, s3_bucket, output_prefix, current_datetime)
 
 
