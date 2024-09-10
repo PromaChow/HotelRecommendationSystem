@@ -11,6 +11,11 @@ on:
         options:
           - nlp
           - sup
+      nlp_techniques:
+        description: 'Comma-separated list of NLP techniques to apply (e.g., tfidf,w2v,sentiment,ngrams,lda,length)'
+        required: false
+        default: 'w2v,sentiment,lda,length'
+        type: string
 
 jobs:
   train-model:
@@ -38,4 +43,4 @@ jobs:
           aws-region: us-west-2
 
       - name: Run model training
-        run: python src/${{ github.event.inputs.training_level }}_training.py
+        run: python src/${{ github.event.inputs.training_level }}_training.py --techniques ${{ github.event.inputs.nlp_techniques }}

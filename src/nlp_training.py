@@ -1,6 +1,7 @@
 import pandas as pd
 import boto3
 import os
+import argparse
 from datetime import datetime
 from botocore.exceptions import NoCredentialsError
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -12,6 +13,16 @@ from sklearn.feature_extraction.text import CountVectorizer
 from gensim.models.ldamodel import LdaModel
 from gensim.corpora import Dictionary
 from collections import Counter
+
+
+# Function to parse input arguments
+def parse_args():
+    parser = argparse.ArgumentParser(description="Apply selected NLP techniques")
+    parser.add_argument('--techniques', type=str, default="w2v,sentiment,lda,length",
+                        help="Comma-separated list of NLP techniques to apply")
+    args = parser.parse_args()
+    return args
+
 
 def get_latest_parquet_file_path(s3_bucket, input_prefix):
     """
@@ -179,6 +190,10 @@ def apply_nlp_techniques(df, techniques):
 
 
 def main():
+    # Parse user input for NLP techniques
+    args = parse_args()
+    selected_techniques = args.techniques.split(',')
+
     # S3 bucket details
     s3_bucket = 'andorra-hotels-data-warehouse'
     input_prefix = 'l3_data/text/'
@@ -191,17 +206,14 @@ def main():
 
     # Load dataset
     df = load_data(parquet_file_path)
-    # df = pd.read_parquet("output/l3_data_2024-09-03_16-49-31.parquet", engine="pyarrow")
 
     # Apply selected NLP techniques
-    selected_techniques = ["w2v", 'sentiment', 'lda', "length"]
     df_with_nlp = apply_nlp_techniques(df, selected_techniques)
 
     # Drop the review_text_translated column
     df_with_nlp.drop(columns=['review_text_translated'], inplace=True)
 
     # Save the new DataFrame with NLP features
-    # df_with_nlp.to_parquet('output/nlp_result_data.parquet')
     save_to_s3(df_with_nlp, s3_bucket, output_prefix, current_datetime)
 
 
