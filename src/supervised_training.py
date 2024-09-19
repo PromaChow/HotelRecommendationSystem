@@ -5,8 +5,6 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.svm import SVR
 from sklearn.model_selection import RandomizedSearchCV
@@ -41,26 +39,40 @@ def load_data(parquet_file_path):
     df = pd.read_parquet(parquet_file_path)
     return df
 
-def save_to_s3(df, s3_bucket, output_prefix, current_datetime):
+def save_model_to_s3(local_file_path, s3_bucket, output_prefix, current_datetime, model_type):
     """
-    Save the DataFrame as a single Parquet file to S3 using boto3.
+    Save the model to S3 using boto3.
+    """
+    # Define the S3 output file name and path
+    output_file_name = f"model_{model_type}_{current_datetime}.pkl"
+    final_output_path = f"{output_prefix}{output_file_name}"
+
+    # Upload the local model file to S3
+    s3 = boto3.client('s3', region_name='us-west-2')
+    s3.upload_file(local_file_path, s3_bucket, final_output_path)
+
+    # Remove the local temporary file after upload
+    os.remove(local_file_path)
+
+def save_results_to_s3(df, s3_bucket, output_prefix, current_datetime, file_format='parquet'):
+    """
+    Save the results DataFrame to S3 as a Parquet file using boto3.
     """
     # Define the local temporary file path
-    local_temp_path = f"/tmp/l3_data_{current_datetime}.parquet"
-
-    # Save the DataFrame to a local Parquet file
+    local_temp_path = f"/tmp/training_results_{current_datetime}.parquet"
     df.to_parquet(local_temp_path, engine='pyarrow', index=False)
 
     # Define the S3 output file name and path
-    output_file_name = f"l3_data_{current_datetime}.parquet"
+    output_file_name = f"training_results_{current_datetime}.parquet"
     final_output_path = f"{output_prefix}{output_file_name}"
 
-    # Upload the local Parquet file to S3
+    # Upload the local results file to S3
     s3 = boto3.client('s3', region_name='us-west-2')
     s3.upload_file(local_temp_path, s3_bucket, final_output_path)
 
-    # Remove the local temporary file
+    # Remove the local temporary file after upload
     os.remove(local_temp_path)
+    print(f"Results saved to S3 as {final_output_path}")
 
 def preprocess_data(df):
     # Drop non-numeric features that are not required for training
@@ -86,14 +98,8 @@ def adjusted_r_squared(r2, n, p):
     """Calculate Adjusted R-Squared"""
     return 1 - (1 - r2) * ((n - 1) / (n - p - 1))
 
-def train_and_evaluate_models_with_tuning(X_train, X_test, y_train, y_test, model_save_path='models'):
+def train_and_evaluate_models_with_tuning(X_train, X_test, y_train, y_test, s3_bucket, output_prefix, model_save_path='models'):
     models = {
-        'Linear Regression': (LinearRegression(), {}),
-        'Decision Tree': (DecisionTreeRegressor(random_state=42), {
-            'max_depth': [None, 10, 20, 30],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 4]
-        }),
         'Random Forest': (RandomForestRegressor(random_state=42), {
             'n_estimators': [50, 100, 200],
             'max_depth': [None, 10, 20, 30],
@@ -125,7 +131,7 @@ def train_and_evaluate_models_with_tuning(X_train, X_test, y_train, y_test, mode
     n = len(y_test)  # Number of samples
     p = X_train.shape[1]  # Number of features
 
-    # Create directory if it doesn't exist
+    # Create local directory for saving models
     if not os.path.exists(model_save_path):
         os.makedirs(model_save_path)
 
@@ -157,14 +163,16 @@ def train_and_evaluate_models_with_tuning(X_train, X_test, y_train, y_test, mode
             'Best Params': randomized_search.best_params_  # Save the best parameters
         })
         
-        # Save the model with current date in filename
+        # Save the model locally
         current_date = datetime.now().strftime("%Y%m%d_%H%M%S")
         model_filename = f"{model_save_path}/model_{name.replace(' ', '_').lower()}_{current_date}.pkl"
         
         with open(model_filename, 'wb') as file:
             pickle.dump(best_model, file)
         
-        print(f"Model {name} saved as {model_filename} with best params: {randomized_search.best_params_}")
+        # Save the model to S3
+        save_model_to_s3(model_filename, s3_bucket, output_prefix, current_date, name.replace(' ', '_').lower())
+        print(f"Model {name} saved locally as {model_filename} and uploaded to S3 with best params: {randomized_search.best_params_}")
     
     # Convert the list of results into a DataFrame
     results_df = pd.DataFrame(results)
@@ -183,7 +191,6 @@ def main():
     current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # Get the Parquet file path from S3
-    #  parquet_file_path = '../output/l3_data_2024-09-10_19-33-39.parquet' 
     parquet_file_path = get_latest_parquet_file_path(s3_bucket, input_prefix)
     print(parquet_file_path)
 
@@ -199,20 +206,11 @@ def main():
     # Scale data
     X_train_scaled, X_test_scaled = scale_data(X_train, X_test)
 
-    # Train and evaluate models
-    ### TODO: Get predicted models saved into S3 bucket
-    # save_to_s3(predicted_models, s3_bucket, output_prefix, current_datetime)
+    # Train and evaluate models and save them to S3
+    results_df = train_and_evaluate_models_with_tuning(X_train_scaled, X_test_scaled, y_train, y_test, s3_bucket, output_prefix, model_save_path='/tmp')
 
-    results_df = train_and_evaluate_models_with_tuning(X_train_scaled, X_test_scaled, y_train, y_test, model_save_path='../models')
-
-    # Display best model based on RMSE
-    best_model_row = results_df.loc[results_df['RMSE'].idxmin()]
-    best_model_name = best_model_row['Model']
-    best_model_rmse = best_model_row['RMSE']
-
-    print(f"\nBest model: {best_model_name} with RMSE: {best_model_rmse}")
-    
-
+    # Save results DataFrame to S3 as a Parquet file
+    save_results_to_s3(results_df, s3_bucket, output_prefix, current_datetime, file_format='parquet')
 
 if __name__ == "__main__":
     main()

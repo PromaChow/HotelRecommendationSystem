@@ -60,13 +60,13 @@ def save_to_s3(df, s3_bucket, output_prefix, current_datetime):
     Save the DataFrame as a single Parquet file to S3 using boto3.
     """
     # Define the local temporary file path
-    local_temp_path = f"/tmp/l3_data_{current_datetime}.parquet"
+    local_temp_path = f"/tmp/nlp_data_{current_datetime}.parquet"
 
     # Save the DataFrame to a local Parquet file
     df.to_parquet(local_temp_path, engine='pyarrow', index=False)
 
     # Define the S3 output file name and path
-    output_file_name = f"l3_data_{current_datetime}.parquet"
+    output_file_name = f"nlp_data_{current_datetime}.parquet"
     final_output_path = f"{output_prefix}{output_file_name}"
 
     # Upload the local Parquet file to S3
