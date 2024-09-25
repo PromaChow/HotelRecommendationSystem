@@ -47,7 +47,7 @@ jobs:
       run: |
         TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
         echo "Timestamp generated: $TIMESTAMP"
-        jupyter nbconvert --to html --no-input src/data_visualization_${{ github.event.inputs.data_level }}.ipynb --output reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html
+        jupyter nbconvert --to html --no-input src/data_visualization_${{ github.event.inputs.data_level }}.ipynb --output ../reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html
 
     - name: Upload to S3
       env:
