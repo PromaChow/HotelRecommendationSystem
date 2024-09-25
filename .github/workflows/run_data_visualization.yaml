@@ -59,7 +59,8 @@ jobs:
       run: |
         TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
         REPORT_NAME="data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html"
-        REPORT_LINK="<li><a href='$REPORT_NAME'>${{ github.event.inputs.data_level | upper }} Report (${TIMESTAMP})</a></li>"
+        REPORT_TITLE=$(echo "${{ github.event.inputs.data_level }}" | tr '[:lower:]' '[:upper:]')
+        REPORT_LINK="<li><a href='$REPORT_NAME'>$REPORT_TITLE Report (${TIMESTAMP})</a></li>"
 
         if [ -f reports/index.html ]; then
           sed -i "/<\/ul>/i $REPORT_LINK" reports/index.html
