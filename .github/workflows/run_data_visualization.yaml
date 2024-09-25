@@ -46,13 +46,15 @@ jobs:
     - name: Get HTML report
       run: |
         TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
-        jupyter nbconvert --to html --no-input src/data_visualization_${{ github.event.inputs.data_level }}.ipynb --output ../reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html
+        echo "Timestamp generated: $TIMESTAMP"
+        jupyter nbconvert --to html --no-input src/data_visualization_${{ github.event.inputs.data_level }}.ipynb --output reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html
 
     - name: Upload to S3
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
+        TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
         aws s3 cp reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html s3://andorra-hotels-data-warehouse/${{ github.event.inputs.data_level }}_data/reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html
 
     - name: Update index.html
