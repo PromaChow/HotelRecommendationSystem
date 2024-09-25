@@ -55,7 +55,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
-        aws s3 cp reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html s3://andorra-hotels-data-warehouse/${{ github.event.inputs.data_level }}_data/reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html
+        aws s3 cp ../reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html s3://andorra-hotels-data-warehouse/${{ github.event.inputs.data_level }}_data/reports/data_visualization_${{ github.event.inputs.data_level }}_${TIMESTAMP}.html
 
     - name: Update index.html
       run: |
