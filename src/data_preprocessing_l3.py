@@ -33,6 +33,34 @@ def load_data(parquet_file_path):
     l2_data = pd.read_parquet(parquet_file_path)
     return l2_data
 
+def save_hotel_id_name_mapping_to_csv(l2_data, s3_bucket, current_datetime):
+    """
+    Save the hotel_id and hotel_name pairs to a CSV file for future reference.
+    """
+    # Extract hotel_id and hotel_name mapping before dropping 'hotel_name'
+    hotel_mapping = l2_data[['hotel_name']].copy()
+    hotel_mapping['hotel_id'] = hotel_mapping['hotel_name'].astype('category').cat.codes
+
+    # Define the local temporary file path
+    local_csv_path = f"/tmp/hotel_id_name_mapping_{current_datetime}.csv"
+
+    # Save the mapping to a CSV file locally
+    hotel_mapping.drop_duplicates().to_csv(local_csv_path, index=False)
+
+    # Define the S3 output path and location for the CSV file
+    output_prefix = "model_training/validation/"
+    output_file_name = f"hotel_id_name_mapping_{current_datetime}.csv"
+    final_output_path = f"{output_prefix}{output_file_name}"
+
+    # Upload the CSV file to S3 at the specified location
+    s3 = boto3.client('s3', region_name='us-west-2')
+    s3.upload_file(local_csv_path, s3_bucket, final_output_path)
+
+    # Remove the local temporary file
+    os.remove(local_csv_path)
+
+    print(f"Hotel ID and Name mapping saved to S3 as {final_output_path}")
+
 def preprocess_data(l2_data):
     """
     Perform one-hot encoding, handle languages, assign IDs, and drop unnecessary columns.
@@ -99,6 +127,9 @@ def main():
 
     # Load L2 data into Pandas DataFrame
     l2_data = load_data(parquet_file_path)
+
+    # Save hotel_id and hotel_name pairs to a CSV file in the specified S3 location
+    save_hotel_id_name_mapping_to_csv(l2_data, s3_bucket, current_datetime)
 
     # Preprocess the data
     l3_data = preprocess_data(l2_data)
