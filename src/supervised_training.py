@@ -74,10 +74,23 @@ def save_results_to_s3(df, s3_bucket, output_prefix, current_datetime, file_form
     os.remove(local_temp_path)
     print(f"Results saved to S3 as {final_output_path}")
 
-def preprocess_data(df):
-    # Drop non-numeric features that are not required for training
-    df = df.drop(columns=['hotel_id'])  # Example of dropping non-informative features
+def save_validation_data_to_s3(df, s3_bucket, validation_prefix, current_datetime):
+    """
+    Save the validation DataFrame to S3 as a Parquet file using boto3.
+    """
+    local_temp_path = f"/tmp/validation_data_{current_datetime}.parquet"
+    df.to_parquet(local_temp_path, engine='pyarrow', index=False)
 
+    output_file_name = f"validation_data_{current_datetime}.parquet"
+    final_output_path = f"{validation_prefix}{output_file_name}"
+
+    s3 = boto3.client('s3', region_name='us-west-2')
+    s3.upload_file(local_temp_path, s3_bucket, final_output_path)
+
+    os.remove(local_temp_path)
+    print(f"Validation data saved to S3 as {final_output_path}")
+
+def preprocess_data(df):
     # Define the label (target) and the features
     X = df.drop(columns=['avg_rating'])  # Features (all except avg_rating)
     y = df['avg_rating']  # Label
@@ -188,29 +201,34 @@ def main():
     s3_bucket = 'andorra-hotels-data-warehouse'
     input_prefix = 'model_training/nlp/'
     output_prefix = 'model_training/supervised/'
+    validation_prefix = 'model_training/validation/'
     current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    # Get the Parquet file path from S3
     parquet_file_path = get_latest_parquet_file_path(s3_bucket, input_prefix)
     print(parquet_file_path)
 
-    # Load dataset
     df = load_data(parquet_file_path)
 
     # Preprocess data
     X, y = preprocess_data(df)
 
-    # Split data
-    X_train, X_test, y_train, y_test = split_data(X, y)
+    # Split data (90% train, 10% validation)
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1, random_state=42)
 
-    # Scale data
+    # Save 10% validation data to S3
+    validation_df = pd.concat([X_val, y_val], axis=1)
+    save_validation_data_to_s3(validation_df, s3_bucket, validation_prefix, current_datetime)
+
+    # Split train data into training and testing sets
+    X_train, X_test, y_train, y_test = split_data(X_train, y_train)
+
     X_train_scaled, X_test_scaled = scale_data(X_train, X_test)
 
     # Train and evaluate models and save them to S3
     results_df = train_and_evaluate_models_with_tuning(X_train_scaled, X_test_scaled, y_train, y_test, s3_bucket, output_prefix, model_save_path='/tmp')
 
-    # Save results DataFrame to S3 as a Parquet file
     save_results_to_s3(results_df, s3_bucket, output_prefix, current_datetime, file_format='parquet')
+
 
 if __name__ == "__main__":
     main()
