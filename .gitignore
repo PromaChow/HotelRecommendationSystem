@@ -169,6 +169,7 @@ tf/terraform*
 output/
 input/
 plots/
-model/
+models/
+old/
 
 .DS_Store

@@ -24,3 +24,8 @@ fsspec
 s3fs
 tensorflow[and-cuda]
 scikit-learn
+torch
+gensim
+textstat
+transformers
+nltk
