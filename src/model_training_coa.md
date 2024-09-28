@@ -1,16 +1,4 @@
-The plot visualizes the distribution of values for each feature extracted from the `review_text_features` column in your dataset. Each subplot represents the distribution of one of the features across all reviews, showing how frequently each value occurs.
-
-
-### Next Steps:
-
-1. **Further Analysis**: You might want to analyze individual features in more detail to understand what they represent.
-2. **Feature Engineering**: Consider how these features can be used in your machine learning models. You might need to transform or scale the data based on their distributions.
-3. **Outlier Handling**: Decide how to handle outliers—whether to keep, transform, or remove them—depending on their impact on your models.
-
------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------
-
-For your thesis, which aims to recommend hotels based on user reviews and other features, you can explore several machine learning (ML) and natural language processing (NLP) techniques. Here is a comparative analysis of some training options you can consider:
+Here is a comparative analysis of some training options you can consider:
 
 ### 1. **Supervised Learning Models**
 These models use labeled data (average ratings) to train the model to predict ratings or recommend hotels.
@@ -31,35 +19,11 @@ These models use labeled data (average ratings) to train the model to predict ra
 - **Pros:** Can capture complex patterns, adaptable to various types of data (text, numerical).
 - **Cons:** Requires large amounts of data, computationally expensive, less interpretable.
 
-### 2. **Natural Language Processing Techniques**
-Since your dataset includes textual reviews, NLP techniques can be crucial in extracting meaningful features.
+#### e. Support Vector Machines
+- **Pros:** SVMs are highly effective for high-dimensional spaces and are particularly useful when the number of features exceeds the number of samples, providing robust performance even with a clear margin of separation between classes.
 
-#### a. TF-IDF (Term Frequency-Inverse Document Frequency)
-- **Pros:** Simple and interpretable, reduces the impact of frequently occurring words.
-- **Cons:** Does not capture context or semantics.
+- **Cons:** SVMs can struggle with large datasets due to high computational cost, and they are less effective when classes are not clearly separable or when working with noisy data.
 
-#### b. Word Embeddings (Word2Vec, GloVe)
-- **Pros:** Captures semantic meaning, efficient and scalable.
-- **Cons:** Requires a large corpus for training, may not capture context well.
-
-#### c. Transformer-based Models (BERT, GPT)
-- **Pros:** Captures context and semantics, state-of-the-art performance in many NLP tasks.
-- **Cons:** Computationally expensive, requires large datasets and resources.
-
-### 3. **Recommendation Systems**
-You can combine NLP with recommendation system techniques to provide personalized hotel recommendations.
-
-#### a. Content-Based Filtering
-- **Pros:** Utilizes detailed item descriptions and user preferences.
-- **Cons:** Requires extensive feature engineering, may not capture user preferences well.
-
-#### b. Collaborative Filtering
-- **Pros:** Utilizes user behavior and interactions, can capture complex user-item relationships.
-- **Cons:** Requires large amounts of interaction data, cold start problem for new users/items.
-
-#### c. Hybrid Models
-- **Pros:** Combines content-based and collaborative filtering, often provides better performance.
-- **Cons:** More complex to implement and tune.
 
 ### Comparative Analysis
 
@@ -89,97 +53,6 @@ Here is a table summarizing the key aspects:
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------
-
-To use NLP for extracting information from user reviews and incorporating it into a recommendation system, you can follow a multi-step process that involves text preprocessing, feature extraction, and integration with other supervised or unsupervised learning models. Here’s a detailed plan on how to approach this:
-
-### 1. **Text Preprocessing**
-
-DONE
-
-### 2. **Feature Extraction**
-
-#### a. TF-IDF (Term Frequency-Inverse Document Frequency)
-- Converts text into numerical features by reflecting how important a word is to a document in a corpus.
-
-```python
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-tfidf_vectorizer = TfidfVectorizer(max_features=1000)
-tfidf_matrix = tfidf_vectorizer.fit_transform([processed_review])
-```
-
-#### b. Word Embeddings (Word2Vec, GloVe)
-- Word embeddings capture semantic meaning and relationships between words.
-
-```python
-from gensim.models import Word2Vec
-
-# Assuming `sentences` is a list of tokenized sentences
-model = Word2Vec(sentences, vector_size=100, window=5, min_count=1, workers=4)
-word_vectors = model.wv
-```
-
-#### c. Transformer-Based Models (BERT, GPT)
-- Use pretrained transformer models to generate contextual embeddings.
-
-```python
-from transformers import BertTokenizer, BertModel
-import torch
-
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-model = BertModel.from_pretrained('bert-base-uncased')
-
-inputs = tokenizer(processed_review, return_tensors='pt', max_length=512, truncation=True, padding='max_length')
-outputs = model(**inputs)
-last_hidden_states = outputs.last_hidden_state
-```
-
-### 3. **Feature Integration**
-
-Combine text features with other numerical features (e.g., average rating, location proximity) to create a comprehensive feature set for training models.
-
-```python
-import numpy as np
-
-# Example numerical features
-numerical_features = np.array([[4.4, 1.53, 5.32, 1.50]])  # Example: avg_rating, latitude, distance_to_ski_resort, distance_to_city_center
-
-# Combine TF-IDF features with numerical features
-combined_features = np.hstack((tfidf_matrix.toarray(), numerical_features))
-```
-
-### 4. **Modeling**
-
-#### a. Hybrid Recommendation Systems
-- Combine content-based filtering (using text features) with collaborative filtering (using user interaction data).
-
-```python
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
-
-X_train, X_test, y_train, y_test = train_test_split(combined_features, ratings, test_size=0.2, random_state=42)
-
-model = RandomForestRegressor(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
-predictions = model.predict(X_test)
-```
-
-#### b. Deep Learning Models
-- Use neural networks to handle complex interactions between features.
-
-```python
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout
-
-model = Sequential()
-model.add(Dense(128, input_dim=combined_features.shape[1], activation='relu'))
-model.add(Dropout(0.5))
-model.add(Dense(64, activation='relu'))
-model.add(Dense(1, activation='linear'))
-
-model.compile(loss='mean_squared_error', optimizer='adam')
-model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
-```
 
 ### 5. **Evaluation and Optimization**
 

@@ -426,11 +426,64 @@ After the Dashboard is executed, the ML expert should decide which of these 6 te
 
 The action will then add the NLP techniques into your dataset and do a final preparation (such as normalizing the data) for the final ML training. 
 
-#### ML Model
-TODO
+#### Machine Learning Supervised Model
+
+Once the data is passed through the NLP techniques, the next step is to produce a supervised learning model that is able to predict the average score of a hotel based on the provided features. 
+
+To execute the supervised training logic, go to GitHub Actions and select `4. Model Training` and enter the option `supervised`. If the prerequisites have set correctly the GitHub Action will pass and the model training pickle files and the results dashboard will be saved into the `andorra-hotels-data-warehouse` S3 bucket. 
+
+The following diagram demonstrates the architectural process. 
+
+[TODO]
+
+For the entire process, we reserved 10% of the data for validation processes, furthermore of that remaining 90%, 20% went for testing the model and 80% for training the model. We also computed different algorithms to see which one fitted the best our data. 
+
+The supervised training models that we explored and hypertunned are the following: 
+
+1. **Random Forest**: This ensemble method, which operates by constructing a multitude of decision trees at training time and outputting the class that is the mode of the classes (classification) or mean prediction (regression) of the individual trees, can handle a mix of numerical and categorical data well and is robust against overfitting.
+
+2. **Gradient Boosting Machines (GBMs)**: Models like XGBoost, LightGBM, or CatBoost can provide powerful predictive insights. These models are known for handling different types of data and transforming features effectively internally, which can be particularly useful for your mixed data types.
+
+3. **Support Vector Machines (SVM)**: While typically used for classification, SVMs can also be adapted for regression (SVR). They might be particularly useful if the decision boundary between different rating levels is not linear.
+
+4. **Neural Networks**: Given the complexity and high dimensionality of the data (especially with word embeddings and sentiment scores), neural networks might capture interactions that other models miss. 
+
+Once these 4 networks were tested we hypertunned the models using Grid Search and saved the best resulting models for each network in our S3 bucket. 
+
+<!-- 5. **Ensemble Learning**: Combining the predictions of several models can often lead to better performance than any single model. For instance, stacking decision trees, SVM, and linear models might give you a more robust prediction. -->
 
 ### Model Evaluation
-TODO
+
+As per the model evaluation, this phase is done jointly with the previous code. Hence, when you trigger the last GitHub Action it will automatically evaluate your model. 
+
+The evaluation techniques chosen for this particular scenario are the following: 
+
+1. **Root Mean Squared Error (RMSE)**
+   - **Why**: RMSE penalizes larger errors more than MAE, which can be useful if we want to heavily penalize predictions that are far from the true ratings. Since outliers might occur in review ratings (e.g., extremely negative or positive experiences), RMSE helps reflect the seriousness of these larger deviations.
+   - **Interpretation**: The RMSE gives an error measurement in the same units as `avg_rating` and emphasizes large errors. It’s good for understanding how much larger errors affect the model’s predictions.
+
+2. **Mean Absolute Error (MAE)**
+   - **Why**: MAE is easy to interpret because it gives the average error magnitude in the same units as the target (`avg_rating`). It’s robust to outliers, meaning large deviations won't overly influence the metric. Since the ratings are likely in a limited range (e.g., 1-5), this will give us a clear idea of the typical prediction error.
+   - **Interpretation**: A lower MAE indicates that the predictions are, on average, close to the actual ratings. If the MAE is 0.1, for example, it means the predictions deviate by an average of 0.1 points from the actual ratings.
+
+3. **R-squared (R²)**
+   - **Why**: R-squared provides an indication of how well the model explains the variance in `avg_rating`. It's particularly useful when comparing different models because it quantifies how much of the variance in the target variable the model can explain.
+   - **Interpretation**: An R² value close to 1 indicates that the model explains most of the variability in the data, while a lower R² (close to 0) indicates a poor fit. However, it’s not sensitive to scale, so we should use it alongside other metrics like MAE or RMSE.
+
+4. **Adjusted R-squared**
+   - **Why**: Adjusted R-squared is especially important when we have multiple features (as we do, with NLP features like word embeddings, topic modeling, sentiment analysis, etc.). It adjusts for the number of predictors, penalizing the addition of irrelevant features. This helps ensure that we're not overfitting by adding unnecessary complexity.
+   - **Interpretation**: An increase in adjusted R-squared indicates that adding more features improves the model meaningfully, while a decrease suggests that the additional features are unnecessary or even detrimental.
+
+
+For the primary metric the RMSE was chosen for the following reasons: 
+- **Penalty on Large Errors**: RMSE penalizes larger errors more than Mean Absolute Error (MAE). This is crucial when we want to minimize significant deviations in predicted ratings, which are likely to be more impactful than smaller deviations.
+- **Real-World Relevance**: In review-based prediction problems like ours, an occasional large error (e.g., predicting a rating far from the actual value) could be more problematic than a series of small errors. RMSE helps emphasize these larger errors, making the model focus on reducing them.
+- **Smooth Gradient**: RMSE tends to provide a smoother gradient during optimization in most machine learning algorithms, which helps improve convergence during model training.
+
+The evaluation results will be stored in a dictionary format and saved into the `andorra-hotels-data-warehouse` S3 bucket.
+
+Furthermore, the next step is to validate our predictions and for that we have created a ... [TODO ONCE I DECIDE WHICH COA TO FOLLOW]
+
 
 ### Model Deployment
 TODO
