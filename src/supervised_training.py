@@ -115,30 +115,31 @@ def train_and_evaluate_models_with_tuning(X_train, X_test, y_train, y_test, s3_b
     models = {
         'Random Forest': (RandomForestRegressor(random_state=42), {
             'n_estimators': [50, 100, 200],
-            'max_depth': [None, 10, 20, 30],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 4]
+            'max_depth': [5, 10, 20],  # Lower depth to avoid overfitting
+            'min_samples_split': [5, 10],  # Regularization: Require more samples to split
+            'min_samples_leaf': [2, 4],  # Regularization: Minimum samples per leaf
         }),
         'Gradient Boosting': (GradientBoostingRegressor(random_state=42), {
             'n_estimators': [50, 100, 200],
-            'learning_rate': [0.01, 0.1, 0.2],
-            'max_depth': [3, 5, 10],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 4]
+            'learning_rate': [0.01, 0.1],  # Lower learning rate to generalize better
+            'max_depth': [3, 5],  # Shallow trees to prevent overfitting
+            'min_samples_split': [5, 10],
+            'min_samples_leaf': [2, 4],
+            'subsample': [0.8, 1.0],  # Subsample to reduce overfitting
         }),
         'Support Vector Machine': (SVR(), {
             'kernel': ['linear', 'rbf'],
-            'C': [0.1, 1, 10],
+            'C': [0.1, 1, 10],  # Use regularization parameter C to prevent overfitting
             'epsilon': [0.1, 0.2, 0.5]
         }),
-        'Neural Network': (MLPRegressor(random_state=42, max_iter=500), {
+        'Neural Network': (MLPRegressor(random_state=42, max_iter=500, early_stopping=True), {  # Early stopping added
             'hidden_layer_sizes': [(50,), (100,), (50, 50)],
             'activation': ['relu', 'tanh'],
-            'solver': ['adam', 'sgd'],
+            'alpha': [0.0001, 0.001, 0.01],  # L2 regularization for neural networks
             'learning_rate_init': [0.001, 0.01]
         })
     }
-    
+
     results = []  # To store results as a list of dictionaries
     
     n = len(y_test)  # Number of samples
@@ -153,7 +154,7 @@ def train_and_evaluate_models_with_tuning(X_train, X_test, y_train, y_test, s3_b
 
         # Use RandomizedSearchCV for hyperparameter tuning (limited to 20 combinations)
         randomized_search = RandomizedSearchCV(model, param_distributions=param_grid, 
-                                               n_iter=20, cv=3, scoring='neg_mean_squared_error', n_jobs=-1, random_state=42)
+                                               n_iter=20, cv=5, scoring='neg_mean_squared_error', n_jobs=-1, random_state=42)
         randomized_search.fit(X_train, y_train)
         
         # Get the best estimator (model) from RandomizedSearch

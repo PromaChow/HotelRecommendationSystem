@@ -1,59 +1,3 @@
-Here is a comparative analysis of some training options you can consider:
-
-### 1. **Supervised Learning Models**
-These models use labeled data (average ratings) to train the model to predict ratings or recommend hotels.
-
-#### a. Linear Regression
-- **Pros:** Simple, interpretable, works well with a large number of features.
-- **Cons:** Assumes linear relationship, may not capture complex patterns in text data.
-
-#### b. Random Forest
-- **Pros:** Handles non-linear relationships, robust to outliers, can handle large datasets.
-- **Cons:** Can be computationally expensive, less interpretable compared to linear models.
-
-#### c. Gradient Boosting Machines (GBM)
-- **Pros:** High predictive accuracy, handles non-linear relationships.
-- **Cons:** Requires careful tuning, can be slow to train.
-
-#### d. Neural Networks
-- **Pros:** Can capture complex patterns, adaptable to various types of data (text, numerical).
-- **Cons:** Requires large amounts of data, computationally expensive, less interpretable.
-
-#### e. Support Vector Machines
-- **Pros:** SVMs are highly effective for high-dimensional spaces and are particularly useful when the number of features exceeds the number of samples, providing robust performance even with a clear margin of separation between classes.
-
-- **Cons:** SVMs can struggle with large datasets due to high computational cost, and they are less effective when classes are not clearly separable or when working with noisy data.
-
-
-### Comparative Analysis
-
-Here is a table summarizing the key aspects:
-
-| Model/Technique        | Pros | Cons | Computational Cost | Interpretability |
-|------------------------|------|------|--------------------|------------------|
-| Linear Regression      | Simple, interpretable | Assumes linearity | Low | High |
-| Random Forest          | Handles non-linearity, robust | Computationally expensive | Medium | Medium |
-| GBM                    | High predictive accuracy | Requires tuning | High | Medium |
-| Neural Networks        | Captures complex patterns | Data hungry, computationally expensive | High | Low |
-| TF-IDF                 | Simple, interpretable | No context | Low | High |
-| Word Embeddings        | Captures semantics | Requires large corpus | Medium | Medium |
-| Transformer Models     | State-of-the-art, context-aware | Expensive, resource-intensive | Very High | Low |
-| Content-Based Filtering| Detailed recommendations | Extensive feature engineering | Medium | High |
-| Collaborative Filtering| Captures user-item relations | Cold start problem | Medium | Medium |
-| Hybrid Models          | Improved performance | Complex implementation | High | Medium |
-
-### Next Steps
-
-1. **Data Preparation**: Clean and preprocess your dataset. Ensure text reviews are tokenized, normalized, and transformed into suitable features using techniques like TF-IDF or word embeddings.
-2. **Model Selection**: Start with simpler models like linear regression or random forests for a baseline. Then, experiment with more complex models like neural networks or transformers.
-3. **Evaluation**: Use metrics like RMSE, MAE for regression models, and precision, recall, F1-score for classification models. For recommendation systems, consider metrics like MAP@K, NDCG.
-4. **Hyperparameter Tuning**: Use grid search or random search to find the optimal hyperparameters.
-5. **Deployment**: Implement the chosen model in your UI using AWS services and GitHub actions for continuous integration and deployment.
-
-
------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------
-
 ### 5. **Evaluation and Optimization**
 
 - Evaluate model performance using appropriate metrics (e.g., RMSE, MAE).
@@ -85,4 +29,34 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-By following these steps, you can effectively use NLP to extract meaningful information from user reviews and integrate it with other features to build a robust hotel recommendation system.
+-----------------------------------------------------------------------------------------------------------------
+
+To reduce overfitting, we can modify your training procedure by applying several strategies:
+
+### 1. **Add Regularization to the Models**
+Regularization techniques like `L2` (Ridge) or `L1` (Lasso) penalize large weights in the model and help reduce overfitting. Some models you’re using already support this:
+
+- **Gradient Boosting** and **Random Forest**: You can tune hyperparameters like `max_depth`, `min_samples_split`, `min_samples_leaf`, and `n_estimators`. These control the complexity of the trees and help regularize the model.
+- **Support Vector Machine (SVM)**: Use the regularization parameter `C`. A lower value of `C` increases regularization and helps prevent overfitting.
+- **Neural Network**: You can add regularization parameters (e.g., L2 penalty) in the `MLPRegressor`.
+
+### 2. **Early Stopping for Gradient Boosting and Neural Networks**
+Use early stopping to prevent overfitting during training. This stops training once the validation error starts to increase.
+
+### 3. **Cross-Validation for Model Selection**
+Use `cross-validation` to select the best hyperparameters. You are already doing `RandomizedSearchCV`, but increasing the number of iterations and using cross-validation on the training data can help avoid overfitting by selecting more generalized models.
+
+### 4. **Feature Scaling**
+You are scaling the data with `StandardScaler`. Ensure all models that benefit from scaled data (e.g., `SVM` and `Neural Networks`) are using scaled input. For tree-based models, scaling does not affect their performance as much.
+
+### 5. **Increase Regularization Parameters**
+In models like `GradientBoostingRegressor` and `RandomForestRegressor`, higher regularization (like increasing `min_samples_split`, `min_samples_leaf`, or reducing `max_depth`) will help in reducing overfitting.
+
+### Key Adjustments:
+1. **Tuned Regularization for Tree Models**: Increased `min_samples_split` and `min_samples_leaf`, and reduced `max_depth` to prevent overfitting.
+2. **Gradient Boosting**: Added subsampling and reduced `max_depth` to build weaker learners.
+3. **Neural Network**: Added early stopping and `alpha` for L2 regularization.
+
+### Other Considerations:
+- **Increase Cross-Validation**: Consider increasing the number of cross-validation folds in `RandomizedSearchCV` (e.g., `cv=5` or `cv=10`) for more robust model selection.
+- **Check for Feature Importance**: Remove or scale down less important features, which may contribute to overfitting.
