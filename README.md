@@ -434,7 +434,7 @@ To execute the supervised training logic, go to GitHub Actions and select `4. Mo
 
 The following diagram demonstrates the architectural process. 
 
-[TODO]
+![Supervised Training Architecture](img/sup_training.png)
 
 For the entire process, we reserved 10% of the data for validation processes, furthermore of that remaining 90%, 20% went for testing the model and 80% for training the model. We also computed different algorithms to see which one fitted the best our data. 
 
