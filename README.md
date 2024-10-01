@@ -436,7 +436,7 @@ The following diagram demonstrates the architectural process.
 
 ![Supervised Training Architecture](img/sup_training.png)
 
-For the entire process, we reserved 10% of the data for validation processes, furthermore of that remaining 90%, 20% went for testing the model and 80% for training the model. We also computed different algorithms to see which one fitted the best our data. 
+For the entire process, we reserved 20% of the data for testing the model and 80% for training the model. We also computed different algorithms to see which one fitted the best our data. 
 
 The supervised training models that we explored and hypertunned are the following: 
 
@@ -481,8 +481,6 @@ For the primary metric the RMSE was chosen for the following reasons:
 - **Smooth Gradient**: RMSE tends to provide a smoother gradient during optimization in most machine learning algorithms, which helps improve convergence during model training.
 
 The evaluation results will be stored in a dictionary format and saved into the `andorra-hotels-data-warehouse` S3 bucket.
-
-Furthermore, the next step is to validate our predictions and for that we have created a ... [TODO ONCE I DECIDE WHICH COA TO FOLLOW]
 
 
 ### Model Deployment
