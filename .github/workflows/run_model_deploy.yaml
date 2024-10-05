@@ -18,7 +18,7 @@ jobs:
       - name: Install Python and Dependencies in Docker (Amazon Linux)
         run: |
           docker exec -i lambda-package yum install -y python3-pip zip
-          docker exec -i lambda-package pip3 install numpy pandas scipy scikit-learn -t /lambda_package/python
+          docker exec -i lambda-package pip3 install --no-deps numpy pandas scipy scikit-learn -t /lambda_package/python
 
       - name: Add Lambda code and Package everything
         run: |
