@@ -1,0 +1,62 @@
+name: 5. Model Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-model:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy scipy scikit-learn pandas
+
+      - name: Prepare layer package
+        run: |
+          mkdir python
+          pip install numpy scipy scikit-learn pandas -t python/
+          zip -r sklearn_layer.zip python
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Package Lambda Function
+        run: |
+          mkdir lambda_package
+          cp src/lambda_model_inference.py lambda_package/
+          cd lambda_package
+          zip -r ../lambda_model_inference.zip .
+
+      - name: Upload Lambda package to S3
+        run: |
+          aws s3 cp lambda_model_inference.zip s3://andorra-hotels-data-warehouse/scripts/lambda_model_inference.zip
+
+      - name: Upload layer to Lambda
+        run: |
+          aws lambda publish-layer-version --layer-name sklearn-layer \
+          --description "Scikit-learn and dependencies" \
+          --zip-file fileb://sklearn_layer.zip \
+          --compatible-runtimes python3.8
+
+      - name: Update Lambda function configuration
+        run: |
+          LAYER_VERSION_ARN=$(aws lambda publish-layer-version --layer-name sklearn-layer \
+                               --description "Scikit-learn and dependencies" \
+                               --zip-file fileb://sklearn_layer.zip \
+                               --compatible-runtimes python3.8 --query LayerVersionArn --output text)
+          aws lambda update-function-configuration --function-name model_inference_lambda \
+                               --layers $LAYER_VERSION_ARN

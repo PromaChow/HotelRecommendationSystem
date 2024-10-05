@@ -484,8 +484,36 @@ The evaluation results will be stored in a dictionary format and saved into the 
 
 
 ### Model Deployment
-TODO
 
+The final step to productionalize our ML model is to deploy it, which is also the last step in our ML Lifecycle. Hence, once the model is trained and we are satisfied with the obtained results we can proceed to run the last GitHub Action `5. Model Deploy`, add the name of the model to deploy as a parameter and if all the configurations were done correctly the action should run correctly. 
+
+The model deployment process is depicted in the diagram below. 
+![Model Deployment Architecture](img/model_deploy.png)
+
+mkdir lambda_package
+cp src/lambda_model_inference.py lambda_package/
+<!-- pip install -r lambda_requirements.txt --target lambda_package/ -->
+cd lambda_package
+zip -r ../lambda_model_inference.zip .
+
+aws lambda invoke \
+  --function-name model_inference_lambda \
+  --payload '{"hotel_name": "Hotel Sol Park","model_name": "random_forest"}' \
+  response.json
+
+event = {
+    "hotel_name": "Hotel Sol Park",
+    "model_name": "random_forest"
+}
+
+https://github.com/keithrozario/Klayers/tree/master/deployments/python3.8
+
+
+
+### User Experience
+
+User experience architecture: 
+![User Experience Architecture](img/user_experience.png)
 
 After completing all the GitHub Actions, you should have a successful model deployed in a Cloud environment, the flow diagram of the actions required are the following:
 
