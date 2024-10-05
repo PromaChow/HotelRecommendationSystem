@@ -11,10 +11,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
+      - name: Set up Docker
+        run: |
+          docker run --name lambda-package -d amazonlinux:2 tail -f /dev/null
+
+      - name: Install Python and Dependencies in Docker (Amazon Linux)
+        run: |
+          docker exec -i lambda-package yum install -y python3-pip zip
+          docker exec -i lambda-package pip3 install numpy pandas scipy scikit-learn -t /lambda_package/python
+
+      - name: Add Lambda code and Package everything
+        run: |
+          docker exec -i lambda-package mkdir -p /lambda_package/lambda
+          docker cp src/lambda_model_inference.py lambda-package:/lambda_package/lambda/
+          docker exec -i lambda-package bash -c "cd /lambda_package && zip -r /lambda_package.zip ."
+
+      - name: Copy Package to Host
+        run: |
+          docker cp lambda-package:/lambda_package.zip lambda_model_inference.zip
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -23,69 +37,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      # Step 1: Create pandas layer
-      - name: Prepare pandas layer (no dependencies)
+      - name: Upload Lambda package to S3
         run: |
-          mkdir pandas_layer
-          pip install pandas --no-deps -t pandas_layer/
-          zip -r pandas_layer.zip pandas_layer
+          aws s3 cp lambda_model_inference.zip s3://andorra-hotels-data-warehouse/scripts/lambda_model_inference.zip
 
-      - name: Publish pandas layer
+      - name: Clean up Docker
         run: |
-          aws lambda publish-layer-version --layer-name pandas-layer \
-            --description "Pandas library without dependencies" \
-            --zip-file fileb://pandas_layer.zip \
-            --compatible-runtimes python3.8
-
-      # Step 2: Create numpy layer
-      - name: Prepare numpy layer (no dependencies)
-        run: |
-          mkdir numpy_layer
-          pip install numpy --no-deps -t numpy_layer/
-          zip -r numpy_layer.zip numpy_layer
-
-      - name: Publish numpy layer
-        run: |
-          aws lambda publish-layer-version --layer-name numpy-layer \
-            --description "Numpy library without dependencies" \
-            --zip-file fileb://numpy_layer.zip \
-            --compatible-runtimes python3.8
-
-      # Step 3: Create scipy layer
-      - name: Prepare scipy layer (no dependencies)
-        run: |
-          mkdir scipy_layer
-          pip install scipy --no-deps -t scipy_layer/
-          zip -r scipy_layer.zip scipy_layer
-
-      - name: Publish scipy layer
-        run: |
-          aws lambda publish-layer-version --layer-name scipy-layer \
-            --description "Scipy library without dependencies" \
-            --zip-file fileb://scipy_layer.zip \
-            --compatible-runtimes python3.8
-
-      # Step 4: Create sklearn layer
-      - name: Prepare sklearn layer (no dependencies)
-        run: |
-          mkdir sklearn_layer
-          pip install scikit-learn --no-deps -t sklearn_layer/
-          zip -r sklearn_layer.zip sklearn_layer
-
-      - name: Publish sklearn layer
-        run: |
-          aws lambda publish-layer-version --layer-name sklearn-layer \
-            --description "Scikit-learn library without dependencies" \
-            --zip-file fileb://sklearn_layer.zip \
-            --compatible-runtimes python3.8
-
-      # Update Lambda function to use the layers
-      - name: Update Lambda function configuration
-        run: |
-          PANDAS_LAYER_VERSION_ARN=$(aws lambda publish-layer-version --layer-name pandas-layer --zip-file fileb://pandas_layer.zip --compatible-runtimes python3.8 --query LayerVersionArn --output text)
-          NUMPY_LAYER_VERSION_ARN=$(aws lambda publish-layer-version --layer-name numpy-layer --zip-file fileb://numpy_layer.zip --compatible-runtimes python3.8 --query LayerVersionArn --output text)
-          SCIPY_LAYER_VERSION_ARN=$(aws lambda publish-layer-version --layer-name scipy-layer --zip-file fileb://scipy_layer.zip --compatible-runtimes python3.8 --query LayerVersionArn --output text)
-          SKLEARN_LAYER_VERSION_ARN=$(aws lambda publish-layer-version --layer-name sklearn-layer --zip-file fileb://sklearn_layer.zip --compatible-runtimes python3.8 --query LayerVersionArn --output text)
-          
-          aws lambda update-function-configuration --function-name model_inference_lambda \
-            --layers $PANDAS_LAYER_VERSION_ARN $NUMPY_LAYER_VERSION_ARN $SCIPY_LAYER_VERSION_ARN $SKLEARN_LAYER_VERSION_ARN
+          docker stop lambda-package
+          docker rm lambda-package
