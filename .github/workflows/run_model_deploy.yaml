@@ -8,31 +8,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Docker (Amazon Linux)
-      - name: Set up Docker
+      - name: Set up Docker (Amazon Linux)
         run: |
           docker run --name lambda-package -d amazonlinux:2 tail -f /dev/null
 
-      # Step 3: Install Python and Dependencies in Docker (Amazon Linux)
       - name: Install Python and Dependencies in Docker (Amazon Linux)
         run: |
           docker exec -i lambda-package yum install -y python3-pip zip
-          docker exec -i lambda-package pip3 install numpy pandas scipy scikit-learn -t /lambda_package/python
-          docker exec -i lambda-package bash -c "ls /lambda_package/python"  # Debugging step to check installed files
-          docker exec -i lambda-package bash -c "cd /lambda_package && zip -r libraries.zip python"
-          docker exec -i lambda-package bash -c "ls /lambda_package"  # Debugging step to check if the zip was created
+          # Install dependencies in a separate folder
+          docker exec -i lambda-package pip3 install --no-deps numpy pandas scipy scikit-learn -t /dependencies
+          # Create a zip of just the dependencies
+          docker exec -i lambda-package bash -c "cd /dependencies && zip -r /dependencies.zip ."
 
-      # Step 4: Copy libraries.zip to Host (with existence check)
-      - name: Copy libraries.zip to Host
+      - name: Copy dependencies.zip to Host (for upload to S3)
         run: |
-          docker exec -i lambda-package bash -c "test -f /lambda_package/libraries.zip && echo 'Zip exists' || echo 'Zip does not exist'"
-          docker cp lambda-package:/lambda_package/libraries.zip libraries.zip
+          docker cp lambda-package:/dependencies.zip dependencies.zip
 
-      # Step 5: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -40,29 +34,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      # Step 6: Upload libraries.zip to S3
-      - name: Upload libraries.zip to S3
+      - name: Upload dependencies.zip to S3
         run: |
-          aws s3 cp libraries.zip s3://andorra-hotels-data-warehouse/scripts/libraries.zip
+          aws s3 cp dependencies.zip s3://andorra-hotels-data-warehouse/scripts/libraries.zip
 
-      # Step 7: Package the Lambda code (without dependencies)
-      - name: Add Lambda code and Package everything
+      - name: Package the Lambda code (without dependencies)
         run: |
-          docker exec -i lambda-package mkdir -p /lambda_package
-          docker cp src/lambda_model_inference.py lambda-package:/lambda_package/
-          docker exec -i lambda-package bash -c "cd /lambda_package && zip -r /lambda_package.zip ."
+          # Ensure lambda_model_inference.py is at the root of the zip
+          docker cp src/lambda_model_inference.py lambda-package:/lambda_model_inference.py
+          docker exec -i lambda-package zip -r /lambda_package.zip lambda_model_inference.py
 
-      # Step 8: Copy Lambda package to Host
       - name: Copy Lambda package to Host
         run: |
           docker cp lambda-package:/lambda_package.zip lambda_model_inference.zip
 
-      # Step 9: Upload Lambda package to S3
       - name: Upload Lambda package to S3
         run: |
           aws s3 cp lambda_model_inference.zip s3://andorra-hotels-data-warehouse/scripts/lambda_model_inference.zip
 
-      # Step 10: Clean up Docker
       - name: Clean up Docker
         run: |
           docker stop lambda-package
