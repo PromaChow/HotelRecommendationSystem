@@ -24,7 +24,7 @@ jobs:
       - name: Prepare layer package
         run: |
           mkdir python
-          pip install scikit-learn -t python/
+          pip install --no-deps scikit-learn -t python/
           zip -r sklearn_layer.zip python
 
       - name: Configure AWS credentials
