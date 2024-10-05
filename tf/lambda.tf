@@ -5,6 +5,7 @@ resource "aws_lambda_function" "model_inference" {
   runtime       = "python3.8"
   filename      = "lambda_model_inference.zip"
   timeout       = 30
+  memory_size   = 512
   layers = [
     "arn:aws:lambda:us-west-2:336392948345:layer:AWSSDKPandas-Python38:26",
   ]
