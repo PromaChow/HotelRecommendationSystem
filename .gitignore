@@ -171,5 +171,6 @@ input/
 plots/
 models/
 old/
+lambda_package/
 
 .DS_Store
