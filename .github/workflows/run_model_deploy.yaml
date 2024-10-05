@@ -19,12 +19,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy scipy scikit-learn pandas
+          pip install scikit-learn
 
       - name: Prepare layer package
         run: |
           mkdir python
-          pip install numpy scipy scikit-learn pandas -t python/
+          pip install scikit-learn -t python/
           zip -r sklearn_layer.zip python
 
       - name: Configure AWS credentials
