@@ -48,9 +48,9 @@ jobs:
       # Step 7: Package the Lambda code (without dependencies)
       - name: Add Lambda code and Package everything
         run: |
-          docker exec -i lambda-package mkdir -p /lambda_package/lambda
-          docker cp src/lambda_model_inference.py lambda-package:/lambda_package/lambda/
-          docker exec -i lambda-package bash -c "cd /lambda_package && zip -r /lambda_package.zip lambda"
+          docker exec -i lambda-package mkdir -p /lambda_package
+          docker cp src/lambda_model_inference.py lambda-package:/lambda_package/
+          docker exec -i lambda-package bash -c "cd /lambda_package && zip -r /lambda_package.zip ."
 
       # Step 8: Copy Lambda package to Host
       - name: Copy Lambda package to Host
