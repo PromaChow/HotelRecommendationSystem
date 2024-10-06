@@ -506,6 +506,8 @@ event = {
     "model_name": "random_forest"
 }
 
+{ "hotel_name": "Hotel Sol Park", "model_name": "random_forest" }
+
 https://github.com/keithrozario/Klayers/tree/master/deployments/python3.8
 
 

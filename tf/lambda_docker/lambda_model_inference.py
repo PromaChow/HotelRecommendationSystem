@@ -78,10 +78,10 @@ def predict_hotel_rating(hotel_name, hotel_map, val_data, model, scaler):
 
     return {
         "hotel_name": hotel_name,
-        "hotel_id": hotel_id,
-        "predicted_avg_rating": predicted_avg_rating,
-        "actual_avg_rating": actual_avg_rating,
-        "num_reviews": len(hotel_data_rows),
+        "hotel_id": int(hotel_id), 
+        "predicted_avg_rating": float(predicted_avg_rating), 
+        "actual_avg_rating": float(actual_avg_rating), 
+        "num_reviews": int(len(hotel_data_rows)), 
         "sample_data": hotel_data_rows.head(1).to_dict(orient='records')[0]
     }
 
@@ -127,11 +127,3 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": f"Error processing request: {str(e)}"
         }
-    
-# if __name__ == "__main__":
-#     event = {
-#         "hotel_name": "Hotel NH Collection Andorra Palomé",
-#         "model_name": "random_forest"
-#     }
-#     context = {} 
-#     print(lambda_handler(event, context))
