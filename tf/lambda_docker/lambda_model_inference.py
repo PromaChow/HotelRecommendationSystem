@@ -1,8 +1,15 @@
 import pandas as pd
 import pickle
 import boto3
+import json
 from io import BytesIO
 from botocore.exceptions import NoCredentialsError
+import os
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 
 s3 = boto3.client('s3')
 
@@ -90,7 +97,16 @@ def lambda_handler(event, context):
     """
     Lambda handler function to process the input event and return hotel rating predictions.
     """
+
+    logger.info("Helooooooooooooo")
+
     try:
+
+        # Log the input to CloudWatch
+        print("Hello from the inside side")
+        print(json.dumps(event, indent=2))
+
+
         # S3 bucket details
         s3_bucket = 'andorra-hotels-data-warehouse'
         
@@ -117,13 +133,24 @@ def lambda_handler(event, context):
 
         result = predict_hotel_rating(hotel_name_input, hotel_map, df, model, scaler)
 
+        # Log the response to CloudWatch
+        print("Hello from the going outside side")
+
         return {
             "statusCode": 200,
-            "body": result
+            "headers": {
+                "Content-Type": "application/json"
+             },
+            "body": json.dumps(result),
+            "isBase64Encoded": False
         }
 
     except Exception as e:
         return {
-            "statusCode": 500,
-            "body": f"Error processing request: {str(e)}"
+            "statusCode": 506,
+            "headers": {
+                "Content-Type": "application/json"
+             },
+            "body": json.dumps({"error": str(e)}),
+            "isBase64Encoded": False
         }

@@ -11,21 +11,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker (Amazon Linux)
-        run: |
-          docker run --name lambda-package -d amazonlinux:2 tail -f /dev/null
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
 
-      - name: Install Python and Dependencies in Docker (Amazon Linux)
+      - name: Install dependencies
         run: |
-          docker exec -i lambda-package yum install -y python3-pip zip
-          # Install dependencies in a separate folder
-          docker exec -i lambda-package pip3 install --no-deps numpy pandas scipy scikit-learn -t /dependencies
-          # Create a zip of just the dependencies
-          docker exec -i lambda-package bash -c "cd /dependencies && zip -r /dependencies.zip ."
-
-      - name: Copy dependencies.zip to Host (for upload to S3)
-        run: |
-          docker cp lambda-package:/dependencies.zip dependencies.zip
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -34,25 +28,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - name: Upload dependencies.zip to S3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false 
+          
+      - name: Copy Lambda code to Docker folder
         run: |
-          aws s3 cp dependencies.zip s3://andorra-hotels-data-warehouse/scripts/libraries.zip
+          cp src/lambda_model_inference.py tf/lambda_docker/
 
-      - name: Package the Lambda code (without dependencies)
+      - name: Run Terraform Commands
         run: |
-          # Ensure lambda_model_inference.py is at the root of the zip
-          docker cp src/lambda_model_inference.py lambda-package:/lambda_model_inference.py
-          docker exec -i lambda-package zip -r /lambda_package.zip lambda_model_inference.py
+          cd tf
+          terraform init
+          terraform apply --auto-approve
 
-      - name: Copy Lambda package to Host
+      - name: Validate Lambda Image URI
         run: |
-          docker cp lambda-package:/lambda_package.zip lambda_model_inference.zip
-
-      - name: Upload Lambda package to S3
-        run: |
-          aws s3 cp lambda_model_inference.zip s3://andorra-hotels-data-warehouse/scripts/lambda_model_inference.zip
-
-      - name: Clean up Docker
-        run: |
-          docker stop lambda-package
-          docker rm lambda-package
+          python src/model_deploy_tests.py

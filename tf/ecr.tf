@@ -15,6 +15,10 @@ data "aws_caller_identity" "current" {}
 
 # Build and push the Docker image using a local-exec provisioner
 resource "null_resource" "docker_image_push" {
+  triggers = {
+    always_run = "${timestamp()}"  # Forces it to run every time
+  }
+
   provisioner "local-exec" {
     command = <<EOT
       aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.us-west-2.amazonaws.com

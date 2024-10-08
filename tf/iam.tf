@@ -54,7 +54,7 @@ resource "aws_iam_role" "lambda_role" {
 
 resource "aws_iam_policy" "lambda_policy" {
   name        = "LambdaPolicy"
-  description = "IAM policy for Lambda to access S3, EC2, and EFS"
+  description = "IAM policy for Lambda to access S3, EC2, EFS, ECR, and update Lambda code"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -65,7 +65,7 @@ resource "aws_iam_policy" "lambda_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        Resource = "arn:aws:logs:*:*:*"
+        Resource = "*"
       },
       {
         Effect = "Allow",
@@ -89,24 +89,26 @@ resource "aws_iam_policy" "lambda_policy" {
           "arn:aws:lambda:us-west-2:336392948345:layer:AWSSDKPandas-Python38:*", 
         ]
       },
-      # {
-      #   Effect = "Allow",
-      #   Action = [
-      #     "elasticfilesystem:ClientMount",
-      #     "elasticfilesystem:ClientWrite",
-      #     "elasticfilesystem:DescribeMountTargets"
-      #   ],
-      #   Resource = "*"
-      # },
-      # {
-      #   Effect = "Allow",
-      #   Action = [
-      #     "ec2:CreateNetworkInterface",    # Necessary to allow Lambda to create network interfaces
-      #     "ec2:DescribeNetworkInterfaces", # Allow Lambda to describe the network interfaces
-      #     "ec2:DeleteNetworkInterface"     # Allow Lambda to clean up network interfaces
-      #   ],
-      #   Resource = "*"
-      # }
+      # Permissions for updating Lambda function code
+      {
+        Effect = "Allow",
+        Action = [
+          "lambda:GetFunctionConfiguration", # To check the current Lambda configuration
+          "lambda:UpdateFunctionCode"        # To update the Lambda function's image URI
+        ],
+        Resource = "arn:aws:lambda:us-west-2:<your-account-id>:function:model_inference_lambda" # Replace with your actual Lambda function ARN
+      },
+      # ECR permissions to describe and pull images
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:DescribeImages",       # To get the latest image URI from ECR
+          "ecr:GetDownloadUrlForLayer", # To pull the Docker image layers
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetAuthorizationToken" # Authorization to access ECR
+        ],
+        Resource = "*"
+      }
     ]
   })
 }
@@ -116,30 +118,3 @@ resource "aws_iam_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_policy.arn
   roles      = [aws_iam_role.lambda_role.name]
 }
-
-
-# # IAM Policy for EFS
-# resource "aws_iam_policy" "efs_policy" {
-#   name        = "LambdaEFSPolicy"
-#   description = "IAM policy for Lambda to access EFS"
-#   policy = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [
-#       {
-#         Effect = "Allow",
-#         Action = [
-#           "elasticfilesystem:ClientMount",
-#           "elasticfilesystem:ClientWrite",
-#           "elasticfilesystem:DescribeMountTargets"
-#         ],
-#         Resource = "*"
-#       }
-#     ]
-#   })
-# }
-
-# resource "aws_iam_policy_attachment" "efs_policy_attachment" {
-#   name       = "LambdaEFSPolicyAttachment"
-#   policy_arn = aws_iam_policy.efs_policy.arn
-#   roles      = [aws_iam_role.lambda_role.name]
-# }
