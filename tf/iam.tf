@@ -96,7 +96,7 @@ resource "aws_iam_policy" "lambda_policy" {
           "lambda:GetFunctionConfiguration", # To check the current Lambda configuration
           "lambda:UpdateFunctionCode"        # To update the Lambda function's image URI
         ],
-        Resource = "arn:aws:lambda:us-west-2:<your-account-id>:function:model_inference_lambda" # Replace with your actual Lambda function ARN
+        Resource = "arn:aws:lambda:us-west-2:590183875407:function:model_inference_lambda"
       },
       # ECR permissions to describe and pull images
       {
