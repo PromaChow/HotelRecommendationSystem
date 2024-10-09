@@ -1,0 +1,8 @@
+boto3
+requests
+pandas
+textblob
+pyarrow
+fsspec
+s3fs
+scikit-learn

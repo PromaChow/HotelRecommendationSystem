@@ -24,7 +24,13 @@ All the reports and dashboards can be found at: https://norma-99.github.io/Hotel
 
 ## Pre-requisites
 
-This project requires both a Google Cloud account and an AWS account.
+This project requires a Docker Desktop, SerpAPI account, Google Cloud account and an AWS account.
+
+### Set Up Docker
+
+To run successfully the terraform commands you should have docker desktop installed. You can install it by following this [Docker desktop link](https://www.docker.com/products/docker-desktop/).
+
+Once you have installed Docker in you computer open the desktop to activate the daemon while running terraform commands. 
 
 ### AWS Account Setup
 
@@ -490,27 +496,29 @@ The final step to productionalize our ML model is to deploy it, which is also th
 The model deployment process is depicted in the diagram below. 
 ![Model Deployment Architecture](img/model_deploy.png)
 
-mkdir lambda_package
-cp src/lambda_model_inference.py lambda_package/
-<!-- pip install -r lambda_requirements.txt --target lambda_package/ -->
-cd lambda_package
-zip -r ../lambda_model_inference.zip .
+As depicted in the architectural design, the model will run in a Docker container stored in ECR in a Lambda which lambda is connected to an API Endpoint callable through Postman or another aplication. This GitHub Action contains Terraform code and a Python script to deploy a Lambda function using a Docker image from ECR and ensure the Lambda function is always using the latest image.
 
-aws lambda invoke \
-  --function-name model_inference_lambda \
-  --payload '{"hotel_name": "Hotel Sol Park","model_name": "random_forest"}' \
-  response.json
+The deployment workflow is the following:
+- Deploy the Lambda function, API Gateway, and associated resources.
+- Pulls the Docker image from ECR.
+- Check if the Lambda function is using the latest image from ECR.
+- Updates the Lambda function if it’s not using the latest image.
 
-event = {
+To test quickly the deployment you can open Postman, and do a POST to the endpoint: https://vs2haothob.execute-api.us-west-2.amazonaws.com/prod/invoke
+
+As body please type: 
+```json
+{
     "hotel_name": "Hotel Sol Park",
     "model_name": "random_forest"
 }
+```
 
-https://github.com/keithrozario/Klayers/tree/master/deployments/python3.8
-
-
+All the logs from the executions are stored in CloudWatch. 
 
 ### User Experience
+
+TO DO: Add a UI for user experience. 
 
 User experience architecture: 
 ![User Experience Architecture](img/user_experience.png)

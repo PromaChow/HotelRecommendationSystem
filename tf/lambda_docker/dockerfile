@@ -1,0 +1,12 @@
+# Use the AWS Lambda Python base image
+FROM public.ecr.aws/lambda/python:3.8
+
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
+# Install sklearn and any other dependencies
+RUN pip install -r requirements.txt
+
+# Copy your Lambda function code into the container
+COPY lambda_model_inference.py ${LAMBDA_TASK_ROOT}
+
+# Set the handler for the Lambda function
+CMD ["lambda_model_inference.lambda_handler"]

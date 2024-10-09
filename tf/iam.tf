@@ -54,7 +54,7 @@ resource "aws_iam_role" "lambda_role" {
 
 resource "aws_iam_policy" "lambda_policy" {
   name        = "LambdaPolicy"
-  description = "IAM policy for Lambda to access S3 and Parameter Store"
+  description = "IAM policy for Lambda to access S3, EC2, EFS, ECR, and update Lambda code"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -65,7 +65,7 @@ resource "aws_iam_policy" "lambda_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        Resource = "arn:aws:logs:*:*:*"
+        Resource = "*"
       },
       {
         Effect = "Allow",
@@ -86,9 +86,28 @@ resource "aws_iam_policy" "lambda_policy" {
           "lambda:GetLayerVersion"  # Grant permission to access Lambda layers
         ],
         Resource = [
-          "arn:aws:lambda:us-west-2:336392948345:layer:AWSSDKPandas-Python38:*",  # Your layer ARN
-          "arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-sklearn:*"     
+          "arn:aws:lambda:us-west-2:336392948345:layer:AWSSDKPandas-Python38:*", 
         ]
+      },
+      # Permissions for updating Lambda function code
+      {
+        Effect = "Allow",
+        Action = [
+          "lambda:GetFunctionConfiguration", # To check the current Lambda configuration
+          "lambda:UpdateFunctionCode"        # To update the Lambda function's image URI
+        ],
+        Resource = "arn:aws:lambda:us-west-2:590183875407:function:model_inference_lambda"
+      },
+      # ECR permissions to describe and pull images
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:DescribeImages",       # To get the latest image URI from ECR
+          "ecr:GetDownloadUrlForLayer", # To pull the Docker image layers
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetAuthorizationToken" # Authorization to access ECR
+        ],
+        Resource = "*"
       }
     ]
   })
