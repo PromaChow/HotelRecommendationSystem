@@ -514,18 +514,37 @@ As body please type:
 }
 ```
 
-All the logs from the executions are stored in CloudWatch. 
-
-### User Experience
-
-TO DO: Add a UI for user experience. 
-
-User experience architecture: 
-![User Experience Architecture](img/user_experience.png)
+All the logs from the executions are stored in CloudWatch for later monitoring.
 
 After completing all the GitHub Actions, you should have a successful model deployed in a Cloud environment, the flow diagram of the actions required are the following:
 
 ![Flow of all the GitHub Actions to trigger for a successful deployment](img/actions_trigger.png)
+
+### User Experience
+
+The last part is how the user interacts with the prediction platform we just built. For that, you should run locally the following command: `streamlit run src/hotel_recommendations_ui.py` which will open the **Andorra Hotel Recommendation UI**. 
+
+![Andorra Hotel Recommendation UI](img/ui_home.png)
+
+Inside the UI, the user will have to follow the next steps: 
+
+1. Select which model they want to use from the available options
+![UI model](img/ui_model_name.png)
+2. Select which Andorra region they are interested in staying
+![UI region](img/ui_region.png)
+3. Once the reguin is selected a list of Region hotels will appear, select the desired hotel and click on the recomendation button. 
+![UI hotel](img/ui_hotel.png)
+
+Streamlit then connects to APi Gateway that send the payload to lambda that returns a prediction. Furthermore, Streamlit also connects to the S3 bucket to retrieve the hotel images and display them to the user. The following diagram depicts the user experience arhcitectural diagram. 
+
+![User Experience Architecture](img/user_experience.png)
+
+Hence, the UI result will look as follows.
+
+![UI result](img/ui_prediction.png)
+
+And there you have it a full integrated ML Lifecycle that is able to produce Andorra Hotel recommendations. 
+
 
 ## License
 

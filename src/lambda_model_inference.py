@@ -1,8 +1,14 @@
 import pandas as pd
 import pickle
 import boto3
+import json
 from io import BytesIO
 from botocore.exceptions import NoCredentialsError
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 
 s3 = boto3.client('s3')
 
@@ -78,10 +84,10 @@ def predict_hotel_rating(hotel_name, hotel_map, val_data, model, scaler):
 
     return {
         "hotel_name": hotel_name,
-        "hotel_id": hotel_id,
-        "predicted_avg_rating": predicted_avg_rating,
-        "actual_avg_rating": actual_avg_rating,
-        "num_reviews": len(hotel_data_rows),
+        "hotel_id": int(hotel_id), 
+        "predicted_avg_rating": float(predicted_avg_rating), 
+        "actual_avg_rating": float(actual_avg_rating), 
+        "num_reviews": int(len(hotel_data_rows)), 
         "sample_data": hotel_data_rows.head(1).to_dict(orient='records')[0]
     }
 
@@ -90,7 +96,12 @@ def lambda_handler(event, context):
     """
     Lambda handler function to process the input event and return hotel rating predictions.
     """
+
     try:
+        # Log the input to CloudWatch
+        print("Input Request")
+        print(json.dumps(event, indent=2))
+
         # S3 bucket details
         s3_bucket = 'andorra-hotels-data-warehouse'
         
@@ -100,6 +111,20 @@ def lambda_handler(event, context):
         model_prefix = 'model_training/supervised/'
         scaler_prefix = 'model_training/validation/'
 
+        # Parse the JSON string from the 'body' key if it exists
+        if 'body' in event:
+            try:
+                # Check if the body is already in dictionary form (if it's not, parse it)
+                if isinstance(event['body'], str):
+                    event = json.loads(event['body'])
+                else:
+                    event = event['body']  # Assume it's already a dict if not a string
+            except json.JSONDecodeError:
+                return {
+                    "statusCode": 400,
+                    "body": json.dumps({"message": "Request body must be JSON"})
+                }
+            
         hotel_name_input = event.get('hotel_name', "Hotel NH Collection Andorra Palomé")
         model_name_input = event.get('model_name', "random_forest")
 
@@ -117,21 +142,75 @@ def lambda_handler(event, context):
 
         result = predict_hotel_rating(hotel_name_input, hotel_map, df, model, scaler)
 
+        print("Output Result")
+        print(json.dumps(result, indent=2))
+
+
         return {
             "statusCode": 200,
-            "body": result
+            "headers": {
+                "Content-Type": "application/json"
+             },
+            "body": json.dumps(result),
+            "isBase64Encoded": False
         }
 
     except Exception as e:
         return {
-            "statusCode": 500,
-            "body": f"Error processing request: {str(e)}"
+            "statusCode": 506,
+            "headers": {
+                "Content-Type": "application/json"
+             },
+            "body": json.dumps({"error": str(e)}),
+            "isBase64Encoded": False
         }
     
+
 # if __name__ == "__main__":
 #     event = {
-#         "hotel_name": "Hotel NH Collection Andorra Palomé",
-#         "model_name": "random_forest"
+#     "hotel_name": "Hotel Sol Park",
+#     "model_name": "random_forest"
 #     }
-#     context = {} 
-#     print(lambda_handler(event, context))
+#     prediction = lambda_handler(event, {})
+
+#     event_api = {
+#         "version": "2.0",
+#         "routeKey": "POST /invoke",
+#         "rawPath": "/prod/invoke",
+#         "rawQueryString": "",
+#         "headers": {
+#         "accept": "*/*",
+#         "accept-encoding": "gzip, deflate, br",
+#         "content-length": "69",
+#         "content-type": "application/json",
+#         "host": "vs2haothob.execute-api.us-west-2.amazonaws.com",
+#         "postman-token": "0b07bf00-2162-4c8a-909c-cd679b8c6a10",
+#         "user-agent": "PostmanRuntime/7.36.1",
+#         "x-amzn-trace-id": "Root=1-670a1721-5b1fb432231ced4f3e79fd46",
+#         "x-forwarded-for": "88.159.85.252",
+#         "x-forwarded-port": "443",
+#         "x-forwarded-proto": "https"
+#         },
+#         "requestContext": {
+#         "accountId": "590183875407",
+#         "apiId": "vs2haothob",
+#         "domainName": "vs2haothob.execute-api.us-west-2.amazonaws.com",
+#         "domainPrefix": "vs2haothob",
+#         "http": {
+#         "method": "POST",
+#         "path": "/prod/invoke",
+#         "protocol": "HTTP/1.1",
+#         "sourceIp": "88.159.85.252",
+#         "userAgent": "PostmanRuntime/7.36.1"
+#         },
+#         "requestId": "fhiNNi4YvHcESGw=",
+#         "routeKey": "POST /invoke",
+#         "stage": "prod",
+#         "time": "12/Oct/2024:06:28:49 +0000",
+#         "timeEpoch": 1728714529069
+#         },
+#         "body": "{\n  \"hotel_name\": \"Hotel Sol Park\",\n  \"model_name\": \"random_forest\"\n}",
+#         "isBase64Encoded": False
+#     }
+
+#     prediction = lambda_handler(event_api, {})

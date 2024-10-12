@@ -4,7 +4,6 @@ import boto3
 import json
 from io import BytesIO
 from botocore.exceptions import NoCredentialsError
-import os
 import logging
 
 logger = logging.getLogger()
@@ -98,14 +97,10 @@ def lambda_handler(event, context):
     Lambda handler function to process the input event and return hotel rating predictions.
     """
 
-    logger.info("Helooooooooooooo")
-
     try:
-
         # Log the input to CloudWatch
-        print("Hello from the inside side")
+        print("Input Request")
         print(json.dumps(event, indent=2))
-
 
         # S3 bucket details
         s3_bucket = 'andorra-hotels-data-warehouse'
@@ -116,6 +111,20 @@ def lambda_handler(event, context):
         model_prefix = 'model_training/supervised/'
         scaler_prefix = 'model_training/validation/'
 
+        # Parse the JSON string from the 'body' key if it exists
+        if 'body' in event:
+            try:
+                # Check if the body is already in dictionary form (if it's not, parse it)
+                if isinstance(event['body'], str):
+                    event = json.loads(event['body'])
+                else:
+                    event = event['body']  # Assume it's already a dict if not a string
+            except json.JSONDecodeError:
+                return {
+                    "statusCode": 400,
+                    "body": json.dumps({"message": "Request body must be JSON"})
+                }
+            
         hotel_name_input = event.get('hotel_name', "Hotel NH Collection Andorra Palomé")
         model_name_input = event.get('model_name', "random_forest")
 
@@ -133,8 +142,9 @@ def lambda_handler(event, context):
 
         result = predict_hotel_rating(hotel_name_input, hotel_map, df, model, scaler)
 
-        # Log the response to CloudWatch
-        print("Hello from the going outside side")
+        print("Output Result")
+        print(json.dumps(result, indent=2))
+
 
         return {
             "statusCode": 200,
