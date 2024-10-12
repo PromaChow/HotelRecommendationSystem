@@ -38,7 +38,7 @@ def save_hotel_id_name_mapping_to_csv(l2_data, s3_bucket, current_datetime):
     Save the hotel_id and hotel_name pairs to a CSV file for future reference.
     """
     # Extract hotel_id and hotel_name mapping before dropping 'hotel_name'
-    hotel_mapping = l2_data[['hotel_name']].copy()
+    hotel_mapping = l2_data[['region', 'hotel_name']].copy()
     hotel_mapping['hotel_id'] = hotel_mapping['hotel_name'].astype('category').cat.codes
 
     # Define the local temporary file path
@@ -59,7 +59,7 @@ def save_hotel_id_name_mapping_to_csv(l2_data, s3_bucket, current_datetime):
     # Remove the local temporary file
     os.remove(local_csv_path)
 
-    print(f"Hotel ID and Name mapping saved to S3 as {final_output_path}")
+    print(f"Hotel ID, Name and Region mapping saved to S3 as {final_output_path}")
 
 def preprocess_data(l2_data):
     """
