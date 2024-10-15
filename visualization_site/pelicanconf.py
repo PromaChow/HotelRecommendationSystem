@@ -35,6 +35,6 @@ DEFAULT_PAGINATION = False
 # RELATIVE_URLS = True
 
 
-THEME = "theme\\notmyidea"
+THEME = "theme/notmyidea"
 
 # PHOTO_LIBRARY = "content\\images"
