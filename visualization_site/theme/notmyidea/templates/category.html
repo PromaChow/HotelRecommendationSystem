@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content_title %}{% endblock %}
+{% block content %}
+    {% if articles %}
+        {% for article in articles_page.object_list %}
+                <aside id="featured" class="body">
+                    <article>
+                        <h2 class="entry-title">{{ article.title }}</h2>
+                        {% include 'article_infos.html' %}{{ article.content }}{% include 'comments.html' %}
+                    </article>
+                </aside><!-- /#featured -->
+        {% endfor %}
+    {% else %}
+        <section id="content" class="body">
+            {% if pages %}
+                <h2>Pages</h2>
+                <ul>
+                    {% for page in pages %}
+                        <li><a href="{{ SITEURL }}/{{ page.url }}">{{ page.title }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>This site currently has no content.</p>
+            {% endif %}
+        </section>
+    {% endif %}
+{% endblock content %}
