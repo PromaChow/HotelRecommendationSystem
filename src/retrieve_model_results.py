@@ -5,6 +5,59 @@ from botocore.exceptions import NoCredentialsError
 
 s3 = boto3.client('s3')
 
+CATEGORY = "Results"
+CONTENT_SAVE_PATH = "../visualization_site/content/"
+IMAGE_SAVE_PATH = CONTENT_SAVE_PATH + "images/"
+
+class Article:
+    _ids = {}
+    def __init__(self, category:str = CATEGORY):
+        self.category = category
+        if category in Article._ids:
+            Article._ids[category] += 1
+        else:
+            Article._ids[category] = 0
+        self.id = Article._ids[category]
+        self.title = ""
+        self.body = ""
+        self.img = []
+    
+    def get_uid(self):
+        return f"{self.category}_{self.id:02d}"
+    
+    def add_img(self, filename):
+        self.img.append(filename)
+
+    @staticmethod 
+    def md_title_only(string):
+        return "<h1 class=\"entry-title\">" + string + "</h1>"
+
+    @staticmethod 
+    def md_img_str(filename):
+        return f"![](../images/{filename})"
+
+    @staticmethod 
+    def md_tab_str(tab):
+        return tab.to_markdown()
+
+    def export(self):
+        title_str = f"Title: {self.title}\n"
+        date_str = f"Date: 2024-10-11 00:{(59-self.id):02d}\n" 
+        category_str = f"Category: {self.category}\n"
+        content_str = "\n" + self.body + "\n"
+
+        images_str = "\n"
+        for filename in self.img:
+            images_str += f"{self.md_img_str(filename)}\n"
+        images_str += "\n"
+        
+        # markdown_str = title_str + date_str + category_str + images_str + content_str
+        markdown_str = title_str + date_str + category_str + content_str + images_str
+
+        with open(f"{CONTENT_SAVE_PATH}{self.get_uid()}.md", "w", encoding="utf-8") as text_file:
+            print(markdown_str, file=text_file)
+        return markdown_str
+
 def get_latest_file(s3_bucket, prefix, starts_with, ends_with):
     """
     Get the latest file from an S3 bucket that starts with `starts_with` and ends with `ends_with`.
@@ -63,3 +116,8 @@ def load_model_training_results():
 
 df = load_model_training_results()
 print(df)
+
+article = Article()
+article.title = Article.md_title_only("Model Training Results")
+article.body = Article.md_tab_str(df)
+article.export()

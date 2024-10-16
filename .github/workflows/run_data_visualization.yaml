@@ -41,6 +41,8 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         jupyter execute src/data_visualization_l1.ipynb src/data_visualization_l2.ipynb src/data_visualization_nlp.ipynb
+        cd src
+        python retrieve_model_results.py
 
     - name: Generate HTML
       run: |
