@@ -9,7 +9,7 @@ from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, ArrayType, MapType
 
-from src.data_preprocessing_l2 import (
+from src.data_preprocessing_t2 import (
     initialize_spark,
     get_csv_file_path,
     load_and_preprocess_data,

@@ -6,7 +6,9 @@
 
 This project implements a complete CI/CD ML Pipeline that gathers hotel information from the Google Places API, stores it in an AWS S3 bucket, and utilizes AWS tools to preprocess, visualize, train, evaluate, and deploy the ML model.
 
-All the reports and dashboards can be found at: https://norma-99.github.io/HotelRecommendationSystem/
+![ML Lifecycle](img/ml_lifecycle.png)
+
+All the reports and dashboards from the data preprocessing and model training can be found at: https://norma-99.github.io/HotelRecommendationSystem/
 
 ## Table of Contents
 
@@ -210,7 +212,7 @@ The data extraction process is performed by the GitHub action which follows thes
 This structure contains all corresponding images for each hotel as described in the JSON file. The overall process retrieves information for 50 hotels per region and 100 reviews per hotel. Additionally, all available images for each hotel are retrieved. Since Andorra has 7 regions, a total of information for 350 hotels is gathered.
 
 ### Data Preprocessing
-For the data preprocessing process, we distinguished different types of data. Distinguishing between different data layers (raw data, L1 data, L2 data, and L3 data) is a common practice in data engineering and data science to manage the data transformation process effectively. Each layer represents a different stage of data processing, from the initial collection to the final form ready for analysis or modeling. Here are the definitions for each:
+For the data preprocessing process, we distinguished different types of data. Distinguishing between different data layers (raw data, T1 data, T2 data, and T3 data) is a common practice in data engineering and data science to manage the data transformation process effectively. Each layer represents a different stage of data processing, from the initial collection to the final form ready for analysis or modeling. Here are the definitions for each:
 
 ![Types of Data Visual Representation](img/types_of_data.png)
 
@@ -218,29 +220,29 @@ For the data preprocessing process, we distinguished different types of data. Di
    - Original reviews, ratings, and metadata collected from Google Places API.
    - Includes all raw text, images, and metadata without any preprocessing.
 
-2. **L1 Data:**
+2. **T1 Data:**
    - Cleaned reviews and ratings, where missing values are handled, and irrelevant fields are removed.
    - Basic text cleaning (e.g., removal of HTML tags, lowercasing).
 
-3. **L2 Data:**
+3. **T2 Data:**
    - Enriched reviews with additional features like sentiment scores, language translation.
    - Integration with other data sources such as hotel amenities and location data.
    - Feature engineering to create new columns like review length, average rating per hotel, etc.
 
-4. **L3 Data:**
+4. **T3 Data:**
    - Final dataset ready for training the recommendation model.
    - Aggregated features, such as average sentiment score per hotel, overall ratings distribution.
    - Data split into training, validation, and test sets for model development.
 
 By distinguishing between these data layers, we can maintain a clear and structured workflow, ensuring that each stage of data processing is well-defined and managed. This approach enhances data quality, traceability, and reproducibility, which are critical for effective data science and machine learning projects.
 
-#### Data Preprocessing from Raw Data to L1 Data
+#### Data Preprocessing from Raw Data to T1 Data
 
-Once the data gathering process has run successfully, the only action required to retrieve the L1 data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `2. Data Preprocessing` GitHub action and select the `l1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the L1 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram demonstrates the L1 data preprocessing architectural design. 
+Once the data gathering process has run successfully, the only action required to retrieve the T1 data into the S3 bucket is to navigate to your GitHub repository, go to Actions, and trigger the `2. Data Preprocessing` GitHub action and select the `t1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the T1 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram demonstrates the T1 data preprocessing architectural design. 
 
-![L1 Data Preprocessing Architectural Design](img/l1_data_prepro.png)
+![T1 Data Preprocessing Architectural Design](img/l1_data_prepro.png)
 
-To preprocess our hotel data for an NLP network, we need to extract and structure the features from the JSON file that are relevant for text-based analysis and potentially for training a recommendation model. Following, a step-by-step guide on how to preprocess the data to get an L1 data, ready for visualization and a second preprocessing round. 
+To preprocess our hotel data for an NLP network, we need to extract and structure the features from the JSON file that are relevant for text-based analysis and potentially for training a recommendation model. Following, a step-by-step guide on how to preprocess the data to get an T1 data, ready for visualization and a second preprocessing round. 
 
 1. **Load Data**:
 
@@ -287,11 +289,11 @@ To preprocess our hotel data for an NLP network, we need to extract and structur
 
     This structure contains all corresponding data after the first preprocessing phase. The overall process retrieves useful information from our Raw Data dataset and stores the result in an S3 bucket.
 
-#### Data Preprocessing from L1 data to L2 data
+#### Data Preprocessing from T1 data to T2 data
 
-The second preprocessing step involves converting the L1 data into L2 data. Visualizing our resulting L1 data enabled us to identify unnecessary columns and explore further feature extraction possibilities. To trigger this preprocessing step, navigate to your GitHub repository, go to Actions, and initiate the `2. Data Preprocessing` GitHub action, selecting the `l2` option. If all prerequisites are set correctly, the GitHub Action will execute successfully, and the L2 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram illustrates the L2 data preprocessing architectural design.
+The second preprocessing step involves converting the T1 data into T2 data. Visualizing our resulting T1 data enabled us to identify unnecessary columns and explore further feature extraction possibilities. To trigger this preprocessing step, navigate to your GitHub repository, go to Actions, and initiate the `2. Data Preprocessing` GitHub action, selecting the `t2` option. If all prerequisites are set correctly, the GitHub Action will execute successfully, and the T2 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram illustrates the T2 data preprocessing architectural design.
 
-![L2 Data Preprocessing Architectural Design](img/data_prepro_l2.png)
+![T2 Data Preprocessing Architectural Design](img/data_prepro_l2.png)
 
 To enhance the hotel data for comprehensive analysis, we employed the following techniques:
 
@@ -300,7 +302,7 @@ To enhance the hotel data for comprehensive analysis, we employed the following 
 2. **Drop Unnecessary Columns**: The following columns were removed:
     - `review_text`: Only translated reviews were used.
     - `number_of_photos`: Since only 10 photos per review were gathered, this feature is irrelevant for training.
-    - `business_status`: Visualization of L1 data showed that 99% of hotels had `OPERATIONAL` status, making this feature irrelevant.
+    - `business_status`: Visualization of T1 data showed that 99% of hotels had `OPERATIONAL` status, making this feature irrelevant.
     - `review_user`: User reviews do not impact model training.
 
 <!-- 3. **Calculate Review Length**: Retrieved each review's character length. -->
@@ -321,11 +323,11 @@ To enhance the hotel data for comprehensive analysis, we employed the following 
 Once these processes were completed, the data was saved in the `andorra-hotels-data-warehouse` S3 bucket.
 
 
-#### Data Preprocessing from L2 data to L3 data
+#### Data Preprocessing from T2 data to T3 data
 
-The third and final preprocessing step involved converting the L2 data into L3 data prepared for NLP treatment. To trigger this preprocessing step, navigate to GitHub repository, go to Actions, and initiate the `2. Data Preprocessing` GitHub Action, selecting the `l3` option. If all prerequisites are set correctly the GitHub Action will execute successfully, and the L3 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram illustrates the L3 preprocessing architectural design. 
+The third and final preprocessing step involved converting the T2 data into T3 data prepared for NLP treatment. To trigger this preprocessing step, navigate to GitHub repository, go to Actions, and initiate the `2. Data Preprocessing` GitHub Action, selecting the `t3` option. If all prerequisites are set correctly the GitHub Action will execute successfully, and the T3 data will be stored in our `andorra-hotels-data-warehouse` bucket. The following diagram illustrates the T3 preprocessing architectural design. 
 
-![L3 Data Preprocessing Architectural Design](img/data_preprocessing_l3.png)\
+![T3 Data Preprocessing Architectural Design](img/data_preprocessing_l3.png)\
 
 To prepare the data for model training we employed the following techniques: 
 
@@ -346,12 +348,12 @@ Once these processes were completed, the data was saved in the `andorra-hotels-d
 After every preprocessing step, the corresponding visualization dashboard should be triggered. Visualizing the data once it is preprocessed is a key factor since it allows for the identification of patterns, trends, and anomalies that can inform further analysis, improve model accuracy, and support decision-making by providing clear and interpretable insights.
 Hence, to obtain your visualization dashboard go to GitHub repository, go to Actions, and trigger the corresponding viusalization GitHub Action.
 
-The following diagram demonstrates the L1 and L2 data visualization architectural design. 
+The following diagram demonstrates the T1 and T2 data visualization architectural design. 
 
-![L1 and L2 Data Visualization Architectural Design](img/data_viz.png)
+![T1 and T2 Data Visualization Architectural Design](img/data_viz.png)
 
-#### Data Visualization from Raw Data to L1 data
-To execute the first visualization dashboard click on the `3. Data Visualization` GitHub action and select the `l1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
+#### Data Visualization from Raw Data to T1 data
+To execute the first visualization dashboard click on the `3. Data Visualization` GitHub action and select the `t1` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
 
 For the first visualization dashboard, a Jupyter notebook with the following plots was created: 
 1. Distribution of Ratings
@@ -371,14 +373,14 @@ For the first visualization dashboard, a Jupyter notebook with the following plo
 <!-- 4. Comparison between Regions
     - **Sentiment Comparison:** Bar chart comparing sentiment distributions across regions. -->
 
-5. Business Status Analysis
+3. Business Status Analysis
     - **Business Status Distribution:** Pie chart showing the distribution of business status (open, closed, etc.).
 
-Once the dashboard was created it pushed the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
+Once the dashboard was created it used Pelican library to push the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
 
-#### Data Visualization from L1 data to L2 data
+#### Data Visualization from T1 data to T2 data
 
-To execute the second visualization dashboard click on the `3. Data Visualization` GitHub action and select the `l2` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
+To execute the second visualization dashboard click on the `3. Data Visualization` GitHub action and select the `t2` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
 
 For the second visualization dashboard, a Jupyter notebook with the following plots was created: 
 <!-- 1. **Review Length Distribution:** Plot the length of each review and its frequency. -->
@@ -394,7 +396,7 @@ For the second visualization dashboard, a Jupyter notebook with the following pl
 <!-- 6. **Review Text Features:** The plot that visualizes the distribution of values for each feature extracted from the `review_text_features` column in the dataset. 
 Each subplot represents the distribution of one of the features across all reviews, showing how frequently each value occurs. -->
 
-Once the dashboard was created it pushed the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
+Once the dashboard was created it used Pelican library to push the report both to GitHub Pages and to the  `andorra-hotels-data-warehouse` S3 bucket. 
 
 
 ### Model Training
@@ -403,7 +405,7 @@ We opted for a two-folded Model Training technique. Started with NLP Evaluation 
 
 #### NLP Dashboard and final implementation
 
-Once you gather your L3 data, the next step is to process our `review_text_translated` feature using NLP techniques. For that, we created a dashboard file called `data_visualization_nlp.ipynb` where 6 different NLP techniques are applied to the text feature and some visualization aids are given so the ML experts can decide which techniques to apply inside the final model. 
+Once you gather your T3 data, the next step is to process our `review_text_translated` feature using NLP techniques. For that, we created a dashboard file called `data_visualization_nlp.ipynb` where 6 different NLP techniques are applied to the text feature and some visualization aids are given so the ML experts can decide which techniques to apply inside the final model. 
 
 To execute the NLP visualization dashboard click on the `3. Data Visualization` GitHub action and select the `nlp` option. If the prerequisites have been set correctly, the GitHub action will pass, and the dashboard report will be available in the GitHub Pages link. 
 
@@ -436,7 +438,7 @@ The action will then add the NLP techniques into your dataset and do a final pre
 
 Once the data is passed through the NLP techniques, the next step is to produce a supervised learning model that is able to predict the average score of a hotel based on the provided features. 
 
-To execute the supervised training logic, go to GitHub Actions and select `4. Model Training` and enter the option `supervised`. If the prerequisites have set correctly the GitHub Action will pass and the model training pickle files and the results dashboard will be saved into the `andorra-hotels-data-warehouse` S3 bucket. 
+To execute the supervised training logic, go to GitHub Actions and select `4. Model Training` and enter the option `supervised`. If the prerequisites have set correctly the GitHub Action will pass and the model training pickle files and the results dashboard will be both displayed in the GitHub Pages and saved into the `andorra-hotels-data-warehouse` S3 bucket. 
 
 The following diagram demonstrates the architectural process. 
 
@@ -544,6 +546,28 @@ Hence, the UI result will look as follows.
 ![UI result](img/ui_prediction.png)
 
 And there you have it a full integrated ML Lifecycle that is able to produce Andorra Hotel recommendations. 
+
+## Full Architectural Diagram
+
+This section presents the complete architectural design of the system developed throughout the course of this project, detailing the interactions and integration between various components. The full architecture presented below provides an overview of how each system element is interconnected to deliver the functionality of the hotel recommendation platform.
+
+![Full Architectural Design](img/full_architecture.png)
+
+The architecture begins with a fully automated CI/CD pipeline, orchestrated via a GitHub repository and GitHub Actions. These tools facilitate continuous integration and deployment throughout the project lifecycle. Initial setup requires opening accounts with Amazon Web Services (AWS), Google Cloud Platform (GCP), and SerpAPI. Secure credentials and API keys for these services are stored in AWS Parameter Store and GitHub Secrets to maintain security and streamline automation.
+
+The data collection process leverages the Google Places API and SerpAPI to gather raw hotel and location data, which is then stored in an Amazon S3 bucket. This data serves as the foundation for further analysis and model training.
+
+For data preprocessing, we utilize a combination of PySpark and Pandas, alongside various Python libraries, to cleanse, structure, and enrich the raw data. The Google Maps Geocoding API is also integrated to enhance location-based information. The preprocessing stage is critical in preparing the dataset for model training, ensuring high-quality input for the machine learning pipeline.
+
+The data analysis phase is carried out using Jupyter notebooks, where multiple Python libraries are employed to generate visualizations, graphs, and tables. These outputs help inform key decisions regarding the most effective preprocessing techniques and feature selection for model training. The same process is applied to the Natural Language Processing (NLP) and supervised learning stages, where Jupyter notebooks and Python scripts are used to train models and evaluate their performance.
+
+All preprocessing and model training results are compiled and published using the Pelican static site generator. The results are made accessible through a GitHub Pages site, providing a user-friendly interface to review the analysis, model performance, and data insights.
+
+For deployment, an AWS Lambda function encapsulated in a Docker container is used to host the model inference logic. This Lambda function is connected to an API Gateway, which provides HTTP endpoints for client applications to interact with the model. CloudWatch is integrated to monitor the system's performance and track model behavior in real time.
+
+The final component of the system is a user interface built with Streamlit, allowing users to interact with the recommendation engine. Through this interface, clients can submit input parameters, which are sent to the API Gateway, triggering the Lambda function to generate hotel recommendations based on the trained model.
+
+This fully automated and scalable architecture integrates a range of cloud services and technologies, ensuring efficient data processing, model training, and real-time recommendations for users.
 
 
 ## License

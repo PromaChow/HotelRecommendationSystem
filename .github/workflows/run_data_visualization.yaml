@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       data_level:
-        description: 'Choose data visualization level: l1, l2 or nlp'
+        description: 'Choose data visualization level: t1, t2 or nlp'
         required: true
-        default: 'l1'
+        default: 't1'
         type: choice
         options:
-          - l1
-          - l2
+          - t1
+          - t2
           - nlp
 
 jobs:
@@ -40,7 +40,13 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        jupyter execute src/data_visualization_l1.ipynb src/data_visualization_l2.ipynb src/data_visualization_nlp.ipynb
+        if [ "${{ github.event.inputs.data_level }}" == "t1" ]; then
+          jupyter execute src/data_visualization_t1.ipynb
+        elif [ "${{ github.event.inputs.data_level }}" == "t2" ]; then
+          jupyter execute src/data_visualization_t1.ipynb src/data_visualization_t2.ipynb
+        elif [ "${{ github.event.inputs.data_level }}" == "nlp" ]; then
+          jupyter execute src/data_visualization_t1.ipynb src/data_visualization_t2.ipynb src/data_visualization_nlp.ipynb
+        fi
         cd src
         python retrieve_model_results.py
 
