@@ -30,3 +30,5 @@ textstat
 transformers
 nltk
 Flask
+tabulate
+pelican

@@ -174,3 +174,8 @@ old/
 lambda_package/
 
 .DS_Store
+
+
+# Pelican
+visualization_site/content/
+visualization_site/output/
