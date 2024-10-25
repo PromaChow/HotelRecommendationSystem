@@ -1,5 +1,5 @@
-# coverage run -m pytest -q tests/test_data_preprocessing_l2.py
-# coverage report --show-missing --include=data_preprocessing_l2.py --omit=/tests/
+# coverage run -m pytest -q tests/test_data_preprocessing_t2.py
+# coverage report --show-missing --include=data_preprocessing_t2.py --omit=/tests/
 
 import pytest
 import os

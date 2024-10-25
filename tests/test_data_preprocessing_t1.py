@@ -1,5 +1,5 @@
-# coverage run -m pytest -q tests/test_data_preprocessing.py
-# coverage report --show-missing --include=data_preprocessing.py --omit=/tests/
+# coverage run -m pytest -q tests/test_data_preprocessing_t1.py
+# coverage report --show-missing --include=data_preprocessing_t1.py --omit=/tests/
 
 import pytest
 from pyspark.sql import SparkSession

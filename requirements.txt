@@ -32,3 +32,4 @@ nltk
 Flask
 tabulate
 pelican
+moto

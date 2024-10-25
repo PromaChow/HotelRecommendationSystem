@@ -1,37 +1,10 @@
 import boto3
-from botocore.exceptions import NoCredentialsError
 import pandas as pd
 from datetime import datetime
 import os
 
-def get_latest_parquet_file_path(s3_bucket, input_prefix):
-    """
-    List objects in the S3 bucket, find the latest Parquet file based on the LastModified timestamp.
-    """
-    s3 = boto3.client('s3')
-    
-    try:
-        response = s3.list_objects_v2(Bucket=s3_bucket, Prefix=input_prefix)
-        if 'Contents' not in response:
-            raise FileNotFoundError(f"No files found in the specified S3 bucket: {s3_bucket} with prefix: {input_prefix}")
+from utils import get_latest_parquet_file_path, load_data
 
-        # Filter for Parquet files and sort by LastModified date
-        parquet_files = [obj for obj in response['Contents'] if obj['Key'].endswith('.parquet')]
-        if not parquet_files:
-            raise FileNotFoundError(f"No Parquet files found in the specified S3 bucket: {s3_bucket} with prefix: {input_prefix}")
-        
-        latest_file = max(parquet_files, key=lambda x: x['LastModified'])
-        return f"s3://{s3_bucket}/{latest_file['Key']}"
-    
-    except NoCredentialsError:
-        raise NoCredentialsError("AWS credentials not found. Please configure your credentials.")
-    
-def load_data(parquet_file_path):
-    """
-    Load the Parquet data from S3 into a Pandas DataFrame.
-    """
-    l2_data = pd.read_parquet(parquet_file_path)
-    return l2_data
 
 def save_hotel_id_name_mapping_to_csv(l2_data, s3_bucket, current_datetime):
     """
