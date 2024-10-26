@@ -18,14 +18,14 @@ def get_latest_parquet_file_path(s3_bucket, input_prefix):
         # Filter for Parquet files and sort by LastModified date
         parquet_files = [obj for obj in response['Contents'] if obj['Key'].endswith('.parquet')]
         if not parquet_files:
-            raise FileNotFoundError(f"No Parquet files found in the specified S3 bucket: {s3_bucket} with prefix: {input_prefix}")
+            raise FileNotFoundError(f"No Parquet files found in the specified S3 bucket: {s3_bucket} with prefix:  {input_prefix}")
         
         latest_file = max(parquet_files, key=lambda x: x['LastModified'])
         return f"s3://{s3_bucket}/{latest_file['Key']}"
     
     except NoCredentialsError:
         raise NoCredentialsError("AWS credentials not found. Please configure your credentials.")
-    
+
 
 def load_data(parquet_file_path):
     """

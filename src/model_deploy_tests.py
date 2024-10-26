@@ -87,5 +87,6 @@ def check_and_update_image():
         print('Lambda function is not using the latest image. Updating...')
         update_lambda_image_uri(latest_image_uri)
 
+
 if __name__ == '__main__':
     check_and_update_image()
