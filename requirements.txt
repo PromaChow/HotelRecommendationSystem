@@ -33,3 +33,4 @@ Flask
 tabulate
 pelican
 moto
+streamlit
